@@ -1,0 +1,7 @@
+name: 'Actools Lesson test support'
+type: module
+description: 'Access fixtures for the Actools Lesson test suite.'
+package: Testing
+core_version_requirement: ^11
+dependencies:
+  - actools_lesson:actools_lesson

@@ -1,0 +1,420 @@
+{
+  "title": "Surface Tension",
+  "code": "PHY11_SURFACE_TENSION",
+  "introduction": "<p>A guided introduction to surface forces, interfacial energy, curved surfaces and capillary rise. Build the physical picture, work through the equations and use short checks to test your reasoning.</p>",
+  "objectives": "Connect the force and energy descriptions of surface tension.\nCount interfaces before selecting an equation.\nState the assumptions behind pressure-jump and capillary formulas.",
+  "prerequisites": "Basic mechanics and force equilibrium\nWork, energy, pressure and density\nElementary geometry and trigonometry",
+  "lessons": [
+    {
+      "title": "Surface tension: force and energy",
+      "summary": "Begin with a soap film, connect force to surface energy and count the interfaces carefully.",
+      "path": "core",
+      "objectives": "Interpret surface tension as force per unit length and energy per unit area.\nExplain why a soap film pulls with twice the force of one interface.\nUse a force–work argument without confusing projected area with total area.",
+      "prerequisites": "Work done by a constant force\nUnits and dimensions",
+      "steps": [
+        {
+          "title": "Start with the physical picture",
+          "optional": false,
+          "reviewed": true,
+          "content_version": 1,
+          "components": [
+            {
+              "type": "text",
+              "heading": "Why does a film pull?",
+              "body": {
+                "value": "<p>A liquid interface has an energy cost. Under fixed conditions, a film tends to reduce its area. A movable bar across a soap film is pulled inward by the film.</p><p>Surface tension acts tangentially to an interface and perpendicular to the boundary line being considered. The direction matters as much as the magnitude.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "b8f0a325-4377-50a0-a6ce-3085a9829dbd"
+            },
+            {
+              "type": "figure",
+              "heading": "A film with a movable bar",
+              "asset": "soap-film-force.png",
+              "alt": "A rectangular soap film pulls a vertical movable bar inward. An external force to the right balances the force of the two film surfaces.",
+              "caption": "Two liquid–air interfaces pull on the bar. L is the wetted length of the bar.",
+              "description": "The film lies in the plane of the page. The bar can slide horizontally along the frame; its weight is not part of this horizontal force balance.",
+              "id": "06eec48d-15ae-58a5-9ea2-1d5b206e725c"
+            }
+          ],
+          "step_id": "3e77b870-9bab-5067-8ad8-0e4fba788e4b"
+        },
+        {
+          "title": "Count the interfaces",
+          "optional": false,
+          "reviewed": true,
+          "content_version": 1,
+          "components": [
+            {
+              "type": "equation",
+              "heading": "One interface",
+              "body": {
+                "value": "<p>For a uniform interface, F is the force exerted across a line of length L. The SI unit of surface tension is N m⁻¹.</p>",
+                "format": "actools_lesson_text"
+              },
+              "tex": "\\gamma=\\frac{F}{L}",
+              "id": "860df03f-6cb8-5ef0-8edc-ae2661805bc8"
+            },
+            {
+              "type": "result",
+              "heading": "Soap film: two interfaces",
+              "body": {
+                "value": "<p>A thin soap film has two approximately equal liquid–air interfaces. Both pull on the bar, so the total force is F = 2γL when the bar and film geometry match the diagram.</p>",
+                "format": "actools_lesson_text"
+              },
+              "tex": "F_{\\mathrm{film}}=2\\gamma L",
+              "id": "46f99a67-c59e-5be0-9748-b0208f0214bb"
+            },
+            {
+              "type": "error",
+              "heading": "Do not add a factor of two automatically",
+              "body": {
+                "value": "<p>Count physical interfaces. A liquid drop in air has one interface; a thin soap bubble has two. The fact that an object is drawn with two sides on paper does not determine the count.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "1e633055-5b4a-554b-9a63-3132a5d2b59c"
+            }
+          ],
+          "step_id": "8f231a8c-f780-5af7-a906-84f880fce597"
+        },
+        {
+          "title": "Connect force, work and area",
+          "optional": false,
+          "reviewed": true,
+          "content_version": 1,
+          "components": [
+            {
+              "type": "equation",
+              "heading": "A reversible small displacement",
+              "body": {
+                "value": "<p>Move the bar outward slowly while maintaining the relevant conditions. The total new area includes both film surfaces. The mechanical work increases the interfacial free energy in this idealized description.</p>",
+                "format": "actools_lesson_text"
+              },
+              "tex": "dW=F\\,dx=2\\gamma L\\,dx=\\gamma\\,dA,\\qquad dA=2L\\,dx",
+              "id": "413aa8c2-d9d1-5b72-98a5-0a4c35538b96"
+            },
+            {
+              "type": "result",
+              "heading": "Equivalent units",
+              "body": {
+                "value": "<p>N m⁻¹ and J m⁻² are dimensionally identical. For a simple liquid interface under fixed conditions, surface tension links the mechanical and energy descriptions.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "ebb69166-4741-5d99-a59f-7cb400ed39fd"
+            },
+            {
+              "type": "practice",
+              "heading": "Check your interface count",
+              "body": {
+                "value": "<p>A bar of wetted length 5.0 cm is pulled slowly through 2.0 mm against a film with γ = 0.030 N m⁻¹. Find the work done.</p>",
+                "format": "actools_lesson_text"
+              },
+              "hint": {
+                "value": "<p>Use the total area increase of the two interfaces.</p>",
+                "format": "actools_lesson_text"
+              },
+              "answer": {
+                "value": "<p>W = 6.0 × 10⁻⁶ J.</p>",
+                "format": "actools_lesson_text"
+              },
+              "solution": {
+                "value": "<p>W = 2γLx = 2 × 0.030 × 0.050 × 0.0020 J. This equals γ times the total area increase, 2Lx.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "233a5fe4-a431-5af9-91d8-191f401050bf"
+            }
+          ],
+          "step_id": "80a11af1-f726-564c-ab28-1454d28c425d"
+        }
+      ]
+    },
+    {
+      "title": "Curved interfaces and excess pressure",
+      "summary": "Distinguish a liquid drop from a soap bubble, then apply the pressure jump with a clear radius convention.",
+      "path": "core",
+      "objectives": "State the pressure jump for a spherical liquid drop.\nDistinguish one interface from two in a thin soap bubble.\nUse radius consistently in calculations.",
+      "prerequisites": "Surface tension as interfacial energy\nArea and volume of a sphere",
+      "steps": [
+        {
+          "title": "Identify the interface",
+          "optional": false,
+          "reviewed": true,
+          "content_version": 1,
+          "components": [
+            {
+              "type": "text",
+              "heading": "Curvature changes the pressure balance",
+              "body": {
+                "value": "<p>For a spherical liquid drop in a gas, equilibrium requires the internal pressure to exceed the external pressure. Surface tension tends to contract the drop; the pressure difference balances that tendency.</p><p>Use R for the radius of the interface. Treat surface tension as uniform, and neglect gravity across the small drop.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "8676e0ef-ed6f-5947-aa20-6b9cc588d222"
+            },
+            {
+              "type": "figure",
+              "heading": "One interface or two?",
+              "asset": "drop-bubble-pressure.png",
+              "alt": "A liquid drop with one spherical interface has pressure jump two gamma over R. A thin soap bubble with two interfaces has pressure jump approximately four gamma over R.",
+              "caption": "R denotes radius, not diameter. The two soap-bubble radii are treated as equal in the thin-film approximation.",
+              "description": "These formulas compare pressure on opposite sides of the indicated object and assume spherical geometry with uniform surface tension.",
+              "id": "17f7a22e-90d8-5c4b-aa90-9ac22f3b72c1"
+            }
+          ],
+          "step_id": "0a3a3d99-7390-525b-a5ba-728b8bb98a71"
+        },
+        {
+          "title": "Derive the spherical result",
+          "optional": false,
+          "reviewed": true,
+          "content_version": 1,
+          "components": [
+            {
+              "type": "equation",
+              "heading": "Liquid drop",
+              "body": {
+                "value": "<p>For a small reversible expansion, dA = 8πR dR and dV = 4πR² dR. Equating pressure work to the increase in surface free energy gives the spherical pressure jump.</p>",
+                "format": "actools_lesson_text"
+              },
+              "tex": "\\Delta p\\,dV=\\gamma\\,dA,\\qquad\\Delta p=\\gamma\\frac{8\\pi R\\,dR}{4\\pi R^2\\,dR}=\\frac{2\\gamma}{R}",
+              "id": "5467d055-b567-5999-bd5e-d0fcb36bff88"
+            },
+            {
+              "type": "equation",
+              "heading": "Thin soap bubble",
+              "body": {
+                "value": "<p>The inner and outer interfaces each contribute. This expression assumes a film much thinner than R and approximately equal surface tension on both interfaces.</p>",
+                "format": "actools_lesson_text"
+              },
+              "tex": "p_{\\mathrm{inside}}-p_{\\mathrm{outside}}\\simeq\\frac{4\\gamma}{R}",
+              "id": "daccd14a-8d2e-5f8d-a654-a3c435682dd4"
+            },
+            {
+              "type": "error",
+              "heading": "Radius and diameter",
+              "body": {
+                "value": "<p>If a problem gives the diameter d, substitute R = d/2. For a liquid drop the pressure jump is 4γ/d, not 2γ/d.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "590e221c-9bf2-562f-a117-a21798ea6748"
+            }
+          ],
+          "step_id": "448ce320-45e4-5d7f-9348-84c106148c0c"
+        },
+        {
+          "title": "Use the result with units",
+          "optional": false,
+          "reviewed": true,
+          "content_version": 1,
+          "components": [
+            {
+              "type": "example",
+              "heading": "A small water drop",
+              "body": {
+                "value": "<p>For a spherical drop with R = 2.0 mm and γ = 0.072 N m⁻¹, the excess pressure is 2 × 0.072 / 0.0020 = 72 Pa. This is a pressure difference, not the absolute pressure inside.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "b11c27de-c6ff-5097-9034-7174d4a6fe30"
+            },
+            {
+              "type": "practice",
+              "heading": "Predict before calculating",
+              "body": {
+                "value": "<p>The radius of a liquid drop is halved while γ stays constant. What happens to the excess pressure?</p>",
+                "format": "actools_lesson_text"
+              },
+              "hint": {
+                "value": "<p>Look at the inverse dependence on radius.</p>",
+                "format": "actools_lesson_text"
+              },
+              "answer": {
+                "value": "<p>It doubles.</p>",
+                "format": "actools_lesson_text"
+              },
+              "solution": {
+                "value": "<p>The pressure jump 2γ/R varies inversely with R. This conclusion assumes that the spherical model and constant γ remain valid.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "cd6aa58e-d3de-5e5e-be85-9f9dd12ffdac"
+            }
+          ],
+          "step_id": "64f23fcc-e569-541a-9b3d-9b430d139e72"
+        }
+      ]
+    },
+    {
+      "title": "Capillary rise and the contact angle",
+      "summary": "Resolve the vertical surface-tension force, define the contact angle through the liquid and see the assumptions behind the familiar formula.",
+      "path": "core",
+      "objectives": "Define the contact angle through the liquid.\nDerive the ideal capillary-height relation.\nPredict the effects of tube radius and wetting.",
+      "prerequisites": "Vertical force equilibrium\nDensity and hydrostatic pressure\nTrigonometric components of a force",
+      "steps": [
+        {
+          "title": "Read the meniscus",
+          "optional": false,
+          "reviewed": true,
+          "content_version": 1,
+          "components": [
+            {
+              "type": "text",
+              "heading": "Wetting sets the sign",
+              "body": {
+                "value": "<p>The contact angle θ is measured through the liquid between the solid surface and the tangent to the liquid–gas interface at the contact line. For θ less than 90°, cos θ is positive and the ideal model predicts rise. For θ greater than 90°, it predicts depression.</p><p>The contact angle depends on the liquid, solid, surrounding medium and surface condition. Do not treat it as a universal property of the liquid alone.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "f99d64cf-8f4a-57f2-9e86-4b19da3cf493"
+            },
+            {
+              "type": "figure",
+              "heading": "Static rise in a narrow tube",
+              "asset": "capillary-rise.png",
+              "alt": "A wetting liquid rises in a narrow vertical tube above a wide reservoir. The height h is measured from the reservoir free surface; r is the tube radius.",
+              "caption": "The diagram is schematic. The elementary balance neglects the meniscus-volume correction.",
+              "description": "Surface tension around the circular contact line has an upward resultant for a wetting liquid. This balances the effective weight of the raised liquid column in the simplified model.",
+              "id": "fcfedb19-f0eb-525c-b5b4-34d1d04e1011"
+            }
+          ],
+          "step_id": "aa63737d-3872-51f7-ba1c-9f7fc92db248"
+        },
+        {
+          "title": "Balance vertical forces",
+          "optional": false,
+          "reviewed": true,
+          "content_version": 1,
+          "components": [
+            {
+              "type": "equation",
+              "heading": "Contact-line force and column weight",
+              "body": {
+                "value": "<p>The contact-line length is 2πr. Resolve the surface-tension force vertically and balance it with the weight ρgπr²h. Here r is the internal tube radius, and h is measured relative to the reservoir surface.</p>",
+                "format": "actools_lesson_text"
+              },
+              "tex": "2\\pi r\\gamma\\cos\\theta=\\rho g\\pi r^2 h,\\qquad h=\\frac{2\\gamma\\cos\\theta}{\\rho g r}",
+              "id": "54c12362-788b-5cf5-aa2c-408166746c39"
+            },
+            {
+              "type": "result",
+              "heading": "State the assumptions",
+              "body": {
+                "value": "<p>Use a uniform vertical narrow tube, static equilibrium, a reservoir much wider than the tube, and approximately constant density and surface tension. The elementary formula neglects the small meniscus volume and treats the outside gas pressure as effectively uniform.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "fc7868c7-46c6-53c0-807e-096f39a9ce97"
+            },
+            {
+              "type": "error",
+              "heading": "There is no generic “capillary suction force”",
+              "body": {
+                "value": "<p>Identify the actual interface, contact line and pressure or force balance. Avoid adding an extra upward force after already including surface tension.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "63d7529d-2614-5756-9e82-009154db8d77"
+            }
+          ],
+          "step_id": "06b0cb01-e223-5440-aa0b-ec4255c1284b"
+        },
+        {
+          "title": "Estimate and interpret",
+          "optional": false,
+          "reviewed": true,
+          "content_version": 1,
+          "components": [
+            {
+              "type": "example",
+              "heading": "Water in a clean narrow tube",
+              "body": {
+                "value": "<p>For γ = 0.072 N m⁻¹, ρ = 1000 kg m⁻³, g = 9.8 m s⁻², r = 0.50 mm and θ ≈ 0°, the ideal height is about 0.029 m, or 2.9 cm. The numerical estimate depends strongly on the wetting assumption.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "117213d6-e7d2-5454-994f-228a996c1e1b"
+            },
+            {
+              "type": "practice",
+              "heading": "A wider tube",
+              "body": {
+                "value": "<p>What happens to the ideal rise if the tube radius doubles, with the liquid and contact angle unchanged?</p>",
+                "format": "actools_lesson_text"
+              },
+              "answer": {
+                "value": "<p>The rise is halved.</p>",
+                "format": "actools_lesson_text"
+              },
+              "solution": {
+                "value": "<p>At fixed γ, ρ, g and θ, h is inversely proportional to r. This predicts equilibrium height, not how quickly the liquid rises.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "0a5dced6-1b51-57e7-a6e0-0fb9b326afed"
+            }
+          ],
+          "step_id": "36d662d1-fed2-56a4-9b1e-57e757baa182"
+        }
+      ]
+    },
+    {
+      "title": "Extension: where the simple model needs care",
+      "summary": "Explore contact-angle hysteresis and nonuniform surface tension without extending the introductory equations beyond their assumptions.",
+      "path": "extension",
+      "objectives": "Recognize that advancing and receding contact angles can differ.\nExplain why a surface-tension gradient can drive flow.",
+      "prerequisites": "Core lessons on surface tension and capillarity",
+      "steps": [
+        {
+          "title": "A real contact line can stick",
+          "optional": false,
+          "reviewed": true,
+          "content_version": 1,
+          "components": [
+            {
+              "type": "text",
+              "heading": "Contact-angle hysteresis",
+              "body": {
+                "value": "<p>On real surfaces, roughness and chemical variation can pin a contact line. The advancing contact angle can differ from the receding angle, so a single equilibrium angle may not describe every stage of motion.</p><p>When comparing observations with the elementary capillary formula, specify the surface preparation and whether the interface is advancing, receding or stationary.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "e1cd3623-9d48-55ed-8731-7b1835c09706"
+            },
+            {
+              "type": "practice",
+              "heading": "A measurement question",
+              "body": {
+                "value": "<p>Two nominally identical tubes show different rise heights. What would you check before concluding that surface tension changed?</p>",
+                "format": "actools_lesson_text"
+              },
+              "answer": {
+                "value": "<p>Check the internal radius, cleanliness, liquid contamination, temperature and wetting or contact-line history.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "c2405fae-c731-5d90-bcfc-75ab4f707cfe"
+            }
+          ],
+          "step_id": "2cae9a95-75cc-5c9c-a18e-be114a058fcb"
+        },
+        {
+          "title": "Surface tension need not be uniform",
+          "optional": true,
+          "reviewed": true,
+          "content_version": 1,
+          "components": [
+            {
+              "type": "text",
+              "heading": "A first look at Marangoni flow",
+              "body": {
+                "value": "<p>A surface-tension gradient can produce tangential stress and drive flow along an interface. Temperature or composition differences can create such gradients.</p><p>The earlier static formulas assumed uniform γ. Applying them point by point without a complete flow and stress analysis does not describe the resulting motion.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "430011f2-12d0-5bf1-9284-1b5171a3c058"
+            },
+            {
+              "type": "result",
+              "heading": "A useful boundary for the core model",
+              "body": {
+                "value": "<p>First identify the interface geometry, number of interfaces and conditions. Then decide whether static equilibrium, uniform surface tension and a single contact angle are reasonable approximations.</p>",
+                "format": "actools_lesson_text"
+              },
+              "id": "ec2e7da6-de93-5a2f-9dc4-cd7da8fc72cb"
+            }
+          ],
+          "step_id": "a0ea37a5-c53b-5723-b40a-db90969ff77b"
+        }
+      ]
+    }
+  ]
+}

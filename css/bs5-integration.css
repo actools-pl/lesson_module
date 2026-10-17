@@ -1,0 +1,52 @@
+/** Optional actools_bs5 compatibility; the theme's global header is untouched. */
+.actools-managed-form .actools-author__step,
+.actools-managed-form .actools-author__component {
+  scroll-margin-block-start: calc(var(--actools-lesson-header-offset, calc(var(--actools-header-admin-offset, var(--drupal-displace-offset-top, 0px)) + var(--actools-header-height, 0px))) + 1.25rem);
+}
+:root.actools-sticky-header-active .actools-managed-form .actools-author__step,
+:root.actools-sticky-header-active .actools-managed-form .actools-author__component {
+  scroll-margin-block-start: 1.25rem;
+}
+
+/* Main's input-submit Twig adds btn-primary even to #button_type secondary.
+ * Correct only auxiliary builder submits and the explicit Save draft action.
+ * Publish, unrelated forms, and the theme's primary palette retain their roles.
+ */
+.actools-managed-form .actools-author input[type='submit'].btn.btn-primary,
+.actools-managed-form input[type='submit'][name='actools_lesson_save_draft'].btn.btn-primary {
+  --bs-btn-color: var(--als-author-ink, #172d38);
+  --bs-btn-bg: var(--als-author-paper, #fff);
+  --bs-btn-border-color: var(--als-author-line, #c8d5db);
+  --bs-btn-hover-color: var(--als-author-ink, #172d38);
+  --bs-btn-hover-bg: var(--als-author-tint, #eaf4f2);
+  --bs-btn-hover-border-color: var(--als-author-accent, #14666a);
+  --bs-btn-active-color: var(--als-author-ink, #172d38);
+  --bs-btn-active-bg: var(--als-author-tint, #eaf4f2);
+  --bs-btn-active-border-color: var(--als-author-accent, #14666a);
+  --bs-btn-disabled-color: var(--als-author-muted, #52636d);
+  --bs-btn-disabled-bg: var(--als-author-paper, #fff);
+  --bs-btn-disabled-border-color: var(--als-author-line, #c8d5db);
+  color: var(--bs-btn-color);
+  background-color: var(--bs-btn-bg);
+  border-color: var(--bs-btn-border-color);
+  white-space: normal;
+}
+.actools-managed-form .actools-author input[type='submit'].btn.btn-primary:is(:hover, :active),
+.actools-managed-form input[type='submit'][name='actools_lesson_save_draft'].btn.btn-primary:is(:hover, :active) {
+  color: var(--bs-btn-hover-color);
+  background-color: var(--bs-btn-hover-bg);
+  border-color: var(--bs-btn-hover-border-color);
+}
+.actools-managed-form .actools-author input[type='submit'].btn.btn-primary:disabled,
+.actools-managed-form input[type='submit'][name='actools_lesson_save_draft'].btn.btn-primary:disabled {
+  color: var(--bs-btn-disabled-color);
+  background-color: var(--bs-btn-disabled-bg);
+  border-color: var(--bs-btn-disabled-border-color);
+  cursor: default;
+}
+@media print {
+  .actools-lesson,
+  .actools-chapter { --al-header-offset: 0px; }
+  .actools-managed-form .actools-author__step,
+  .actools-managed-form .actools-author__component { scroll-margin-block-start: 0; }
+}

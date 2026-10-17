@@ -1,0 +1,16 @@
+field.storage_settings.actools_lesson_step:
+  type: mapping
+  label: 'Lesson step storage settings'
+  mapping: {}
+field.field_settings.actools_lesson_step:
+  type: mapping
+  label: 'Lesson step settings'
+  mapping: {}
+field.widget.settings.actools_lesson_step_builder:
+  type: mapping
+  label: 'Lesson builder settings'
+  mapping: {}
+field.formatter.settings.actools_lesson_step_summary:
+  type: mapping
+  label: 'Lesson step summary settings'
+  mapping: {}

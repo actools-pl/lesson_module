@@ -1,0 +1,40 @@
+services:
+  actools_lesson.theme_integration:
+    class: Drupal\actools_lesson\Service\ThemeIntegration
+    arguments: ['@theme.manager']
+  actools_lesson.access:
+    class: Drupal\actools_lesson\Service\LessonAccess
+  actools_lesson.editorial:
+    class: Drupal\actools_lesson\Service\EditorialWorkflow
+    arguments: ['@entity_type.manager', '@current_user', '@lock', '@datetime.time', '@?content_moderation.moderation_information']
+  actools_lesson.membership:
+    class: Drupal\actools_lesson\Service\MembershipManager
+    arguments: ['@entity_type.manager', '@database']
+  actools_lesson.outline:
+    class: Drupal\actools_lesson\Service\OutlineResolver
+    arguments: ['@entity_type.manager', '@actools_lesson.membership']
+  actools_lesson.component_renderer:
+    class: Drupal\actools_lesson\Service\ComponentRenderer
+    arguments: ['@entity_type.manager', '@current_user', '@image.factory', '@file_url_generator']
+  actools_lesson.document_builder:
+    class: Drupal\actools_lesson\Service\LessonDocumentBuilder
+    arguments: ['@entity_type.manager', '@current_user', '@actools_lesson.outline', '@actools_lesson.component_renderer', '@entity.repository']
+  actools_lesson.breadcrumb:
+    class: Drupal\actools_lesson\Breadcrumb\LessonBreadcrumbBuilder
+    arguments: ['@actools_lesson.outline', '@current_user']
+    tags:
+      - { name: breadcrumb_builder, priority: 100 }
+  actools_lesson.progress:
+    class: Drupal\actools_lesson\Service\ProgressStore
+    arguments: ['@user.data', '@lock', '@datetime.time', '@actools_lesson.document_builder']
+  actools_lesson.progress_form:
+    class: Drupal\actools_lesson\Service\ProgressLazyBuilder
+    arguments: ['@entity_type.manager', '@form_builder', '@current_user']
+  actools_lesson.chapter_progress:
+    class: Drupal\actools_lesson\Service\ChapterProgressLazyBuilder
+    arguments: ['@entity_type.manager', '@current_user', '@actools_lesson.outline', '@actools_lesson.progress']
+  actools_lesson.uninstall_guard:
+    class: Drupal\actools_lesson\Service\UninstallGuard
+    arguments: ['@entity_type.manager']
+    tags:
+      - { name: module_install.uninstall_validator }

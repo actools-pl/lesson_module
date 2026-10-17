@@ -1,0 +1,16 @@
+{
+  "mathjax": {
+    "version": "4.1.3",
+    "sha256": "b7109f516f3d842de62b95d653e35fa0976dc223706a2a77440e7f7723f0c54d",
+    "license": "Apache-2.0",
+    "npm_integrity": "sha512-BN/8Pkgn7G1pIDYJqd9md+JHsE/jydSYbyOZnSdSA0WziuVO8mRxdYiWFumkVVly/8U+hm9DpIIoWuvySverzw==",
+    "integrity_verified": true
+  },
+  "@mathjax/mathjax-newcm-font": {
+    "version": "4.1.3",
+    "sha256": "87d7b869c6a2a6169d9a53acc4eab6c846a9cbe11752738226461bb5070c8b88",
+    "license": "Apache-2.0",
+    "npm_integrity": "sha512-gzAB3dFHilHX1l5x2xUqRL+1jDQt3Fyza1DkEMVXWC4E8SvsGdlgEza47HYi2WhVcgfkvf4zgUGzuhbq3Pjlew==",
+    "integrity_verified": true
+  }
+}

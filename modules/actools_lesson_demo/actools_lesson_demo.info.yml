@@ -1,0 +1,7 @@
+name: Actools Lessons — Surface Tension example
+type: module
+description: 'Explicitly imports an original, illustrated demonstration chapter with three core lessons and one extension.'
+package: Aarin Content Tools
+core_version_requirement: ^11.3
+dependencies:
+  - actools_lesson:actools_lesson

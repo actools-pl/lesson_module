@@ -1,0 +1,6 @@
+actools_lesson.dashboard:
+  title: 'Actools Lessons'
+  description: 'Build chapters and guided learning experiences.'
+  route_name: actools_lesson.dashboard
+  parent: system.admin_content
+  weight: 15

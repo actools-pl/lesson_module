@@ -1,0 +1,79 @@
+/** Native authoring controls, scoped to the lesson editor and workbench. */
+form.actools-managed-form input,
+form.actools-managed-form textarea,
+form.actools-managed-form select {
+  box-sizing: border-box;
+  max-inline-size: 100%;
+}
+.actools-author,
+.actools-author-status,
+.actools-author-checklist,
+.actools-editorial-actions {
+  --als-author-ink: #172d38;
+  --als-author-muted: #52636d;
+  --als-author-line: #c8d5db;
+  --als-author-paper: #fff;
+  --als-author-soft: #f5f8f9;
+  --als-author-tint: #eaf4f2;
+  --als-author-accent: #14666a;
+  --als-author-focus: #a3440a;
+  color: var(--als-author-ink);
+  color-scheme: light;
+}
+.actools-author {
+  max-inline-size: 76rem;
+  min-inline-size: 0;
+  padding: clamp(.75rem, 2vw, 1.5rem);
+  border: 1px solid var(--als-author-line);
+  border-radius: .65rem;
+  background: var(--als-author-soft);
+}
+.actools-author__intro { max-inline-size: 72ch; color: var(--als-author-muted); line-height: 1.6; }
+.actools-author__outline { margin-block: 1.25rem; padding: 1rem 1.25rem; border: 1px solid var(--als-author-line); border-radius: .5rem; background: var(--als-author-paper); }
+.actools-author__outline > strong { font-size: 1.05rem; }
+.actools-author__outline p { margin-block: .4rem .8rem; color: var(--als-author-muted); font-size: .9rem; }
+.actools-author__outline-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: .25rem 2rem; margin: 0; padding-inline-start: 1.65rem; }
+.actools-author__outline-list li { padding-inline-start: .2rem; }
+.actools-author__outline a { display: inline-block; padding-block: .4rem; color: var(--als-author-accent); text-underline-offset: .2em; overflow-wrap: anywhere; }
+.actools-author__step { margin: .85rem 0; padding: 0 1.1rem; border: 1px solid var(--als-author-line); border-radius: .5rem; background: var(--als-author-paper); scroll-margin-block-start: calc(var(--drupal-displace-offset-top, 0px) + 1.25rem); }
+.actools-author__step[open] { padding-block-end: 1rem; }
+.actools-author__step > summary { min-block-size: 2.75rem; padding-block: .9rem; font-size: 1.06rem; font-weight: 700; line-height: 1.45; cursor: pointer; overflow-wrap: anywhere; }
+.actools-author__component { margin: .75rem 0; padding: 0 1rem; border: 1px solid var(--als-author-line); border-inline-start: 4px solid var(--als-author-accent); border-radius: .35rem; background: var(--als-author-paper); scroll-margin-block-start: calc(var(--drupal-displace-offset-top, 0px) + 1.25rem); }
+.actools-author__component[open] { padding-block-end: .75rem; }
+.actools-author__component > summary { min-block-size: 2.75rem; padding-block: .7rem; font-weight: 650; line-height: 1.45; cursor: pointer; overflow-wrap: anywhere; }
+.actools-author__component--error { border-inline-start-color: #a35a23; }
+.actools-author__component--practice,
+.actools-author__component--example { border-inline-start-color: #496aaf; }
+.actools-author__actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-block: .75rem; padding-block-start: .5rem; border-block-start: 1px solid var(--als-author-line); }
+.actools-author__actions .button { margin: 0; font-size: .875rem; }
+.actools-author__order { max-inline-size: 45ch; font-size: .9rem; }
+.actools-author input[type='number'] { max-inline-size: 8rem; }
+.actools-author textarea { max-inline-size: 100%; }
+.actools-author__notice { max-inline-size: 76ch; font-size: .9rem; color: var(--als-author-muted); }
+.actools-author :focus-visible,
+.actools-editorial-actions :focus-visible { outline: 3px solid var(--als-author-focus); outline-offset: 3px; }
+.actools-author details[open] > summary { margin-block-end: .4rem; }
+.actools-author-status { padding: 1rem 1.25rem; margin-block: 1rem; border: 1px solid var(--als-author-line); border-inline-start: 4px solid var(--als-author-accent); border-radius: .35rem; background: var(--als-author-tint); }
+.actools-author-status p { margin-block: .3rem; }
+.actools-author-checklist { padding: .75rem 1.25rem; margin-block: 1rem; border: 1px solid var(--als-author-line); border-radius: .35rem; background: var(--als-author-soft); line-height: 1.6; }
+.actools-author-checklist ul { margin-block: .5rem; padding-inline-start: 1.25rem; }
+.actools-editorial-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; margin-block: 1rem; }
+.actools-editorial-actions .button { margin: 0; }
+.actools-author-table { max-inline-size: 100%; overflow-x: auto; margin-block: 1rem; }
+.actools-author-table:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
+.actools-author-table table { min-inline-size: 46rem; }
+@media (max-width: 600px) {
+  .actools-author__step { padding-inline: .65rem; }
+  .actools-author__component { padding-inline: .6rem; }
+  .actools-author__outline { padding-inline: .8rem; }
+  .actools-author__actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .actools-author__actions .button { white-space: normal; min-block-size: 2.75rem; }
+}
+@media (prefers-color-scheme: dark) {
+  .actools-author,
+  .actools-author-status,
+  .actools-author-checklist,
+  .actools-editorial-actions { --als-author-ink: #e5edf5; --als-author-muted: #c3cfdd; --als-author-line: #4c5e70; --als-author-paper: #202d3c; --als-author-soft: #17212e; --als-author-tint: #234148; --als-author-accent: #8ddbd4; --als-author-focus: #ffcb7b; color-scheme: dark; }
+}
+:is([data-bs-theme='dark'], [data-theme='dark']) :is(.actools-author, .actools-author-status, .actools-author-checklist, .actools-editorial-actions) { --als-author-ink: #e5edf5; --als-author-muted: #c3cfdd; --als-author-line: #4c5e70; --als-author-paper: #202d3c; --als-author-soft: #17212e; --als-author-tint: #234148; --als-author-accent: #8ddbd4; --als-author-focus: #ffcb7b; color-scheme: dark; }
+:is([data-bs-theme='light'], [data-theme='light']) :is(.actools-author, .actools-author-status, .actools-author-checklist, .actools-editorial-actions) { --als-author-ink: #172d38; --als-author-muted: #52636d; --als-author-line: #c8d5db; --als-author-paper: #fff; --als-author-soft: #f5f8f9; --als-author-tint: #eaf4f2; --als-author-accent: #14666a; --als-author-focus: #a3440a; color-scheme: light; }

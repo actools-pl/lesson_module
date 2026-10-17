@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Session\AccountInterface;
+
+/**
+ * Implements hook_entity_field_access().
+ */
+function actools_lesson_test_entity_field_access(string $operation, FieldDefinitionInterface $field_definition, AccountInterface $account, ?FieldItemListInterface $items = NULL): AccessResult {
+  if ($operation === 'view') {
+    $hidden_fields = \Drupal::state()->get('actools_lesson_test.hidden_fields', []);
+    if (in_array($field_definition->getName(), $hidden_fields, TRUE)) {
+      return AccessResult::forbidden()->addCacheTags(['actools_lesson_test:hidden_fields']);
+    }
+    // Depend on the test policy even while it currently permits the field.
+    $policy = AccessResult::neutral()->addCacheTags(['actools_lesson_test:hidden_fields']);
+  }
+  if ($operation === 'view' && $field_definition->getName() === 'title' && $items) {
+    $hidden = \Drupal::state()->get('actools_lesson_test.hidden_titles', []);
+    if (in_array((int) $items->getEntity()->id(), $hidden, TRUE)) {
+      return AccessResult::forbidden()->addCacheTags(['actools_lesson_test:hidden_titles']);
+    }
+  }
+  return $policy ?? AccessResult::neutral();
+}

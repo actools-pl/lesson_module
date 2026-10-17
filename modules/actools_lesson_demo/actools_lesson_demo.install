@@ -1,0 +1,8 @@
+<?php
+
+declare(strict_types=1);
+
+/** Implements hook_install(). */
+function actools_lesson_demo_install(): void {
+  \Drupal\actools_lesson_demo\DemoInstaller::install();
+}

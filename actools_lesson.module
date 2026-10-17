@@ -1,0 +1,204 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\actools_lesson\Service\LessonAccess;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Entity\EntityStorageException;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\NodeInterface;
+
+/** Implements hook_theme(). */
+function actools_lesson_theme(): array {
+  return is_file(__DIR__ . '/actools_lesson.theme_hooks.php') ? require __DIR__ . '/actools_lesson.theme_hooks.php' : [];
+}
+
+/** Implements hook_page_attachments(). */
+function actools_lesson_page_attachments(array &$attachments): void {
+  $match = \Drupal::routeMatch();
+  $route = $match->getRouteName() ?? '';
+  $owned = str_starts_with($route, 'actools_lesson.');
+  if (!$owned && in_array($route, ['entity.node.canonical', 'entity.node.revision', 'entity.node.preview'], TRUE)) {
+    foreach (['node', 'node_revision', 'node_preview'] as $parameter) {
+      $node = $match->getParameter($parameter);
+      if ($node instanceof NodeInterface && (LessonAccess::isLesson($node) || LessonAccess::isChapter($node))) {
+        $owned = TRUE;
+        break;
+      }
+    }
+  }
+  if ($owned) {
+    \Drupal::service('actools_lesson.theme_integration')->attach($attachments);
+  }
+}
+
+/** Implements hook_entity_type_alter(). */
+function actools_lesson_entity_type_alter(array &$entity_types): void {
+  if (isset($entity_types['node'])) {
+    $entity_types['node']->addConstraint('ActoolsLessonStructure');
+  }
+}
+
+/** Implements hook_node_presave(). */
+function actools_lesson_node_presave(NodeInterface $node): void {
+  $errors = \Drupal::service('actools_lesson.membership')->validate($node);
+  if (LessonAccess::isLesson($node)) {
+    // Programmatic writes must satisfy the same schema/file checks as the builder.
+    foreach ($node->get('field_actools_lesson_steps')->validate() as $violation) {
+      $errors[] = (string) $violation->getMessage();
+    }
+  }
+  if ($errors) {
+    throw new EntityStorageException(implode(' ', array_unique($errors)));
+  }
+}
+
+/** Implements hook_node_insert(). */
+function actools_lesson_node_insert(NodeInterface $node): void {
+  \Drupal::service('actools_lesson.membership')->synchronize($node);
+}
+
+/** Implements hook_node_update(). */
+function actools_lesson_node_update(NodeInterface $node): void {
+  \Drupal::service('actools_lesson.membership')->synchronize($node);
+}
+
+/** Implements hook_node_revision_create(). */
+function actools_lesson_node_revision_create(NodeInterface $revision, NodeInterface $source, $keep_untranslatable_fields): void {
+  \Drupal\actools_lesson\Plugin\Field\FieldType\LessonStepItem::prepareHistoricalRestore($revision, $source);
+}
+
+/** Implements hook_node_delete(). */
+function actools_lesson_node_delete(NodeInterface $node): void {
+  \Drupal::service('actools_lesson.membership')->delete($node);
+  \Drupal::service('user.data')->delete('actools_lesson', NULL, 'lesson:' . $node->id());
+  // Keep every revision's images until the whole node is deleted.
+  $database = \Drupal::database();
+  if ($database->schema()->tableExists('file_usage')) {
+    $ids = $database->select('file_usage', 'u')->fields('u', ['fid'])
+      ->condition('module', 'actools_lesson')->condition('type', 'node')->condition('id', $node->id())->execute()->fetchCol();
+    foreach (\Drupal::entityTypeManager()->getStorage('file')->loadMultiple($ids) as $file) {
+      \Drupal::service('file.usage')->delete($file, 'actools_lesson', 'node', $node->id(), 0);
+    }
+  }
+}
+
+/** Implements hook_node_view_alter(). */
+function actools_lesson_node_view_alter(array &$build, NodeInterface $node, EntityViewDisplayInterface $display): void {
+  if (($build['#view_mode'] ?? '') !== 'full') {
+    return;
+  }
+  $native = [];
+  foreach (['#entity_type', '#node', '#view_mode', '#langcode', '#pre_render', '#post_render', '#access', '#weight'] as $key) {
+    if (array_key_exists($key, $build)) {
+      $native[$key] = $build[$key];
+    }
+  }
+  $cache_identity = array_intersect_key($build['#cache'] ?? [], array_flip(['keys', 'bin']));
+  $attachments = $build['#attached'] ?? [];
+  $original_cache = \Drupal\Core\Cache\CacheableMetadata::createFromRenderArray($build);
+  $preview = !empty($node->in_preview) || (!$node->isPublished() && $node->access('update'));
+  if (LessonAccess::isLesson($node)) {
+    $match = \Drupal::routeMatch();
+    $route_revision = $match->getParameter('node_revision');
+    $revision_preview = $match->getRouteName() === 'entity.node.revision'
+      && $route_revision instanceof NodeInterface
+      && $route_revision->id() === $node->id()
+      && $route_revision->getRevisionId() === $node->getRevisionId();
+    $preview = $preview || $revision_preview;
+    $request = \Drupal::request();
+    $mode = $request->query->get('view') === 'all' ? 'all' : 'guided';
+    $step = $request->query->get('step');
+    $document = \Drupal::service('actools_lesson.document_builder')->build($node, $mode, is_string($step) ? $step : NULL, $preview, $revision_preview);
+    \Drupal\Core\Cache\CacheableMetadata::createFromRenderArray($build)->merge(\Drupal\Core\Cache\CacheableMetadata::createFromRenderArray($document))->applyTo($document);
+    if ($preview) {
+      $document['#cache']['max-age'] = 0;
+    }
+    $build = $document;
+  }
+  elseif (LessonAccess::isChapter($node)) {
+    $build = \Drupal::classResolver()->getInstanceFromDefinition(\Drupal\actools_lesson\Controller\WorkbenchController::class)->chapter($node, $preview);
+    $original_cache->merge(\Drupal\Core\Cache\CacheableMetadata::createFromRenderArray($build))->applyTo($build);
+  }
+  else {
+    return;
+  }
+  \Drupal::service('actools_lesson.theme_integration')->attach($build);
+  $build += $native;
+  // Renderer has already established the native entity cache identity. Modes
+  // and steps vary through the merged query contexts, never replacement keys.
+  unset($build['#cache']['keys'], $build['#cache']['bin']);
+  $build['#cache'] += $cache_identity;
+  $build['#attached'] = \Drupal\Core\Render\BubbleableMetadata::mergeAttachments($attachments, $build['#attached'] ?? []);
+}
+
+/** Implements hook_form_BASE_FORM_ID_alter(). */
+function actools_lesson_form_node_form_alter(array &$form, FormStateInterface $form_state): void {
+  $node = $form_state->getFormObject()->getEntity();
+  if (!$node instanceof NodeInterface || (!LessonAccess::isLesson($node) && !LessonAccess::isChapter($node))) {
+    return;
+  }
+  $form['#attributes']['class'][] = 'actools-managed-form';
+  $form['#attached']['library'][] = 'actools_lesson/author';
+  \Drupal::service('actools_lesson.theme_integration')->attach($form);
+  $form['actools_author_help'] = [
+    '#type' => 'container', '#weight' => -100,
+    '#attributes' => ['class' => ['actools-author-help']],
+    'title' => ['#type' => 'html_tag', '#tag' => 'h2', '#value' => t('Build a clear learning journey')],
+    'description' => ['#markup' => LessonAccess::isLesson($node)
+      ? t('Save a new lesson as a draft, add it to a chapter, then publish it. Give each step a useful title, add teaching components and mark reviewed steps ready for learners. Use Preview to check the reader.')
+      : t('Save lessons as drafts first, then add them below in reading order. Core and Extension remain separate learning paths. Publish the chapter and its reviewed lessons when ready.')],
+  ];
+  // Native node revisions are the editorial history for the whole lesson.
+  if (isset($form['revision'])) {
+    $form['revision']['#default_value'] = TRUE;
+  }
+  if (LessonAccess::isLesson($node)) {
+    \Drupal::service('actools_lesson.editorial')->alterForm($form, $form_state);
+  }
+}
+
+/** Implements hook_node_prepare_form(). */
+function actools_lesson_node_prepare_form(NodeInterface $node, string $operation, FormStateInterface $form_state): void {
+  \Drupal::service('actools_lesson.editorial')->prepareForm($node, $operation, $form_state);
+}
+
+/** Native entity builder: choose draft/public revision before validation. */
+function actools_lesson_editorial_build_entity(string $entity_type, NodeInterface $node, array $form, FormStateInterface $form_state): void {
+  \Drupal::service('actools_lesson.editorial')->buildEntity($node, $form, $form_state);
+}
+
+/** Native form validation: reject a stale or forged revision snapshot. */
+function actools_lesson_editorial_validate(array &$form, FormStateInterface $form_state): void {
+  \Drupal::service('actools_lesson.editorial')->validateForm($form, $form_state);
+}
+
+/** Native form save wrapper: serialize writes and redirect drafts privately. */
+function actools_lesson_editorial_save(array $form, FormStateInterface $form_state): void {
+  \Drupal::service('actools_lesson.editorial')->save($form, $form_state);
+}
+
+/** Implements hook_block_view_alter(). */
+function actools_lesson_block_view_alter(array &$build, \Drupal\Core\Block\BlockPluginInterface $block): void {
+  if ($block->getBaseId() !== 'page_title_block') {
+    return;
+  }
+  $match = \Drupal::routeMatch();
+  if (!in_array($match->getRouteName(), ['entity.node.canonical', 'entity.node.preview', 'entity.node.revision', 'actools_lesson.reader', 'actools_lesson.print', 'actools_lesson.draft_preview'], TRUE)) {
+    return;
+  }
+  $node = $match->getRouteName() === 'entity.node.revision' ? $match->getParameter('node_revision') : ($match->getParameter('node') ?? $match->getParameter('node_preview'));
+  if ($node instanceof NodeInterface && (LessonAccess::isLesson($node) || LessonAccess::isChapter($node))) {
+    $operation = match ($match->getRouteName()) {
+      'entity.node.revision' => 'view revision',
+      'actools_lesson.draft_preview' => 'update',
+      default => $node->isPublished() ? 'view' : 'update',
+    };
+    $access = $node->access($operation, NULL, TRUE);
+    \Drupal\Core\Cache\CacheableMetadata::createFromRenderArray($build)->addCacheableDependency($node)->addCacheableDependency($access)->addCacheContexts(['route'])->applyTo($build);
+    if ($access->isAllowed()) {
+      // The accessible module document supplies exactly one semantic H1.
+      $build['#access'] = FALSE;
+    }
+  }
+}

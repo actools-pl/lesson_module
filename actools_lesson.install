@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+/** Implements hook_schema(). */
+function actools_lesson_schema(): array {
+  return ['actools_lesson_membership' => [
+    'description' => 'Derived uniqueness index. Canonical lesson order is the chapter reference field.',
+    'fields' => [
+      'lesson_nid' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE],
+      'chapter_nid' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE],
+      'delta' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE],
+    ],
+    'primary key' => ['lesson_nid'],
+    'indexes' => ['chapter_order' => ['chapter_nid', 'delta']],
+  ]];
+}
+
+/** Implements hook_install(). */
+function actools_lesson_install(): void {
+  \Drupal\actools_lesson\StructureInstaller::install();
+}
+
+/** Implements hook_uninstall(). */
+function actools_lesson_uninstall(): void {
+  // User progress contains no content; remove it after the content guard allows uninstall.
+  \Drupal::service('user.data')->delete('actools_lesson');
+}

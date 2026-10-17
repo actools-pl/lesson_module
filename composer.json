@@ -1,0 +1,25 @@
+{
+  "name": "aarin/actools_lesson",
+  "description": "A guided scientific lesson reader and structured authoring module for Drupal.",
+  "type": "drupal-module",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=8.3",
+    "drupal/core": "^11.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "Drupal\\actools_lesson\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Drupal\\Tests\\actools_lesson\\": "tests/src/"
+    }
+  },
+  "homepage": "https://github.com/actools-pl/lesson_module",
+  "support": {
+    "issues": "https://github.com/actools-pl/lesson_module/issues",
+    "source": "https://github.com/actools-pl/lesson_module"
+  }
+}

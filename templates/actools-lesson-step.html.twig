@@ -1,0 +1,7 @@
+<section class="actools-step" id="step-{{ id }}" data-actools-step="{{ id }}" aria-labelledby="step-title-{{ id }}">
+  <header class="actools-step__header">
+    <p class="actools-eyebrow">{{ 'Step @number'|t({'@number': number}) }}{% if optional %} <span class="actools-step__optional">{{ 'Optional'|t }}</span>{% endif %}</p>
+    <h2 id="step-title-{{ id }}">{{ title }}</h2>
+  </header>
+  <div class="actools-step__components">{{ content }}</div>
+</section>

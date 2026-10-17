@@ -1,0 +1,63 @@
+actools_lesson.dashboard:
+  path: '/admin/content/actools-lessons'
+  defaults:
+    _controller: '\Drupal\actools_lesson\Controller\WorkbenchController::dashboard'
+    _title: 'Actools Lessons'
+  requirements:
+    _permission: 'access actools lesson authoring'
+  options:
+    _admin_route: TRUE
+actools_lesson.add_lesson:
+  path: '/admin/content/actools-lessons/add/lesson'
+  defaults:
+    _controller: '\Drupal\actools_lesson\Controller\WorkbenchController::addLesson'
+    _title: 'Create a lesson'
+  requirements:
+    _permission: 'access actools lesson authoring'
+    _entity_create_access: 'node:actools_resource'
+  options:
+    _admin_route: TRUE
+actools_lesson.add_chapter:
+  path: '/admin/content/actools-lessons/add/chapter'
+  defaults:
+    _controller: '\Drupal\actools_lesson\Controller\WorkbenchController::addChapter'
+    _title: 'Create a chapter'
+  requirements:
+    _permission: 'access actools lesson authoring'
+    _entity_create_access: 'node:actools_topic'
+  options:
+    _admin_route: TRUE
+actools_lesson.reader:
+  path: '/node/{node}/study'
+  defaults:
+    _controller: '\Drupal\actools_lesson\Controller\LessonController::view'
+    _title_callback: '\Drupal\actools_lesson\Controller\LessonController::title'
+  requirements:
+    _custom_access: 'actools_lesson.access::reader'
+  options:
+    parameters:
+      node:
+        type: entity:node
+actools_lesson.print:
+  path: '/node/{node}/study/print'
+  defaults:
+    _controller: '\Drupal\actools_lesson\Controller\LessonController::printView'
+    _title_callback: '\Drupal\actools_lesson\Controller\LessonController::title'
+  requirements:
+    _custom_access: 'actools_lesson.access::reader'
+  options:
+    parameters:
+      node:
+        type: entity:node
+actools_lesson.draft_preview:
+  path: '/node/{node}/study/draft'
+  defaults:
+    _controller: '\Drupal\actools_lesson\Controller\DraftPreviewController::view'
+    _title: 'Draft preview'
+  requirements:
+    _custom_access: 'actools_lesson.editorial::previewAccess'
+  options:
+    no_cache: TRUE
+    parameters:
+      node:
+        type: entity:node

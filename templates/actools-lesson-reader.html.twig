@@ -1,0 +1,107 @@
+{#
+  Module-owned lesson player. All prose is a Drupal render array; URLs are built
+  by the reader. The outer Drupal page owns the global header and breadcrumbs.
+  Editorial review flags are deliberately not presented as learner completion.
+#}
+{% set rendered_summary = summary|render %}
+{% set rendered_introduction = introduction|render %}
+{% set rendered_objectives = objectives|render %}
+{% set rendered_prerequisites = prerequisites|render %}
+{% set rendered_status = status|render %}
+{% set shell_attributes = attributes|default(create_attribute()) %}
+<article{{ shell_attributes.addClass('actools-lesson', 'actools-lesson--' ~ mode, chapter_items or chapter_link ? 'actools-lesson--has-chapter' : 'actools-lesson--standalone').setAttribute('data-actools-reader', '').setAttribute('data-mode', mode) }}>
+  {% if preview %}
+    <div class="actools-lesson__preview" role="status">{{ 'Preview — this revision is not the public lesson.'|t }}</div>
+  {% endif %}
+  <a class="actools-skip" href="#actools-lesson-content">{{ 'Skip to lesson content'|t }}</a>
+  <div class="actools-lesson__layout">
+    {% if chapter_items or chapter_link %}
+      <aside class="actools-lesson__chapter">
+        <details class="actools-chapter-nav" data-actools-disclosure="chapter" open>
+          <summary>{{ chapter_navigation_label|default('Chapter lessons'|t) }}</summary>
+          <nav aria-label="{{ chapter_navigation_label|default('Chapter lessons'|t) }}">
+            {% if chapter_link %}<div class="actools-chapter-nav__title">{{ chapter_link }}</div>{% endif %}
+            {% if lesson_position %}<p class="actools-chapter-nav__position">{{ lesson_position }}</p>{% endif %}
+            <ol class="actools-chapter-nav__list">
+              {% for lesson in chapter_items %}
+                <li class="actools-chapter-nav__item{{ lesson.current ? ' is-current' : '' }}">
+                  <a href="{{ lesson.url }}"{% if lesson.current %} aria-current="page"{% endif %}>
+                    <span class="actools-chapter-nav__number" aria-hidden="true">{{ '%02d'|format(lesson.number) }}</span>
+                    <span>{{ lesson.title }}</span>
+                    {% if lesson.current %}<span class="visually-hidden">{{ '(current lesson)'|t }}</span>{% endif %}
+                  </a>
+                </li>
+              {% endfor %}
+            </ol>
+          </nav>
+        </details>
+      </aside>
+    {% endif %}
+    <div class="actools-lesson__main">
+      <header class="actools-lesson__header">
+        <div class="actools-lesson__topline">
+          {% if chapter_link %}<div class="actools-lesson__chapter-link">{{ chapter_link }}</div>{% endif %}
+          <nav class="actools-lesson__utilities" aria-label="{{ 'Reading options'|t }}">
+            {% if mode == 'guided' and all_url %}<a href="{{ all_url }}">{{ 'Read all'|t }}</a>{% endif %}
+            {% if mode != 'guided' and guided_url %}<a href="{{ guided_url }}">{{ 'Step by step'|t }}</a>{% endif %}
+            {% if mode != 'print' and print_url %}<a href="{{ print_url }}">{{ 'Print view'|t }}</a>{% endif %}
+            {% if mode == 'print' %}<button type="button" class="actools-print-trigger" data-actools-print hidden>{{ 'Print lesson'|t }}</button>{% endif %}
+          </nav>
+        </div>
+        {% if lesson_position %}<p class="actools-eyebrow">{{ lesson_position }}</p>{% elseif learning_path_label %}<p class="actools-eyebrow">{{ learning_path_label }}</p>{% endif %}
+        <h1 class="actools-lesson__title">{{ title }}</h1>
+        {% if rendered_summary|trim %}<div class="actools-lesson__summary">{{ rendered_summary }}</div>{% endif %}
+        {% if rendered_objectives|trim or rendered_prerequisites|trim %}
+          <details class="actools-lesson__orientation">
+            <summary>{{ 'Before you begin'|t }}</summary>
+            <div class="actools-lesson__orientation-grid">
+              {% if rendered_objectives|trim %}<section><h2>{{ 'What you will learn'|t }}</h2>{{ rendered_objectives }}</section>{% endif %}
+              {% if rendered_prerequisites|trim %}<section><h2>{{ 'Prerequisites'|t }}</h2>{{ rendered_prerequisites }}</section>{% endif %}
+            </div>
+          </details>
+        {% endif %}
+      </header>
+      {% if rendered_introduction|trim %}<div class="actools-lesson__introduction">{{ rendered_introduction }}</div>{% endif %}
+      {% if steps and mode != 'print' %}
+        <details class="actools-step-navigation" data-actools-disclosure="steps" open>
+          <summary>
+            {% if mode == 'guided' %}{{ 'Step @current of @total'|t({'@current': current_step_number, '@total': total_steps}) }}{% else %}{{ 'Lesson steps'|t }}{% endif %}
+            <span class="actools-step-navigation__hint">{{ 'View steps'|t }}</span>
+          </summary>
+          <nav aria-label="{{ 'Lesson steps'|t }}">
+            <ol class="actools-step-rail">
+              {% for step in steps %}
+                <li class="actools-step-rail__item{{ step.current and mode == 'guided' ? ' is-current' : '' }}" data-actools-step-link="{{ step.id }}">
+                  <a href="{{ step.url }}"{% if step.current and mode == 'guided' %} aria-current="step"{% endif %}>
+                    <span class="actools-step-rail__number" aria-hidden="true">{{ step.number }}</span>
+                    <span class="actools-step-rail__label">{{ step.title }}{% if step.optional %}<small>{{ 'Optional'|t }}</small>{% endif %}</span>
+                    <span class="actools-step-rail__completion" data-actools-completion-label hidden>{{ 'Marked as read'|t }}</span>
+                  </a>
+                </li>
+              {% endfor %}
+            </ol>
+          </nav>
+        </details>
+      {% endif %}
+      <div class="actools-lesson__progress-summary" data-actools-progress-summary hidden></div>
+      {% if rendered_status|trim %}<div class="actools-lesson__status" role="status">{{ rendered_status }}</div>{% endif %}
+      <div id="actools-lesson-content" class="actools-lesson__content" tabindex="-1">
+        {% if mode == 'all' %}<p class="actools-reading-mode">{{ 'Read all — every step is shown below.'|t }}</p>{% endif %}
+        {{ steps_content }}
+      </div>
+      {% if progress and mode != 'print' %}<div class="actools-lesson__progress" data-actools-progress-region>{{ progress }}</div>{% endif %}
+      {% if mode == 'guided' %}
+        <nav class="actools-lesson__step-actions" aria-label="{{ 'Move between lesson steps'|t }}">
+          <div class="actools-lesson__back">{% if previous_step %}{{ previous_step }}{% else %}<span class="actools-navigation-boundary">{{ 'First step'|t }}</span>{% endif %}</div>
+          <div class="actools-lesson__next">{% if next_step %}{{ next_step }}<small>{{ 'Continue reading without marking this step as read.'|t }}</small>{% else %}<span class="actools-navigation-boundary">{{ 'Last step in this lesson'|t }}</span>{% endif %}</div>
+        </nav>
+      {% endif %}
+      {% if previous_lesson or next_lesson or chapter_return %}
+        <nav class="actools-lesson__chapter-actions" aria-label="{{ 'Continue through the chapter'|t }}">
+          {% if previous_lesson %}<div><span>{{ 'Previous lesson'|t }}</span>{{ previous_lesson }}</div>{% endif %}
+          {% if next_lesson %}<div><span>{{ 'Next lesson'|t }}</span>{{ next_lesson }}</div>{% elseif chapter_return %}<div><span>{{ 'Chapter contents'|t }}</span>{{ chapter_return }}</div>{% endif %}
+        </nav>
+      {% endif %}
+    </div>
+  </div>
+</article>

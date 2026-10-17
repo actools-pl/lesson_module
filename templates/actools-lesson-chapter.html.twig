@@ -1,0 +1,62 @@
+{% set rendered_introduction = introduction|render %}
+{% set rendered_objectives = objectives|render %}
+{% set rendered_prerequisites = prerequisites|render %}
+{% set rendered_resources = resources|render %}
+{% set chapter_attributes = attributes|default(create_attribute()) %}
+<article{{ chapter_attributes.addClass('actools-chapter') }}>
+  {% if preview %}<div class="actools-lesson__preview" role="status">{{ 'Preview — this revision is not public.'|t }}</div>{% endif %}
+  <header class="actools-chapter__header">
+    <p class="actools-eyebrow">{{ 'Chapter'|t }}</p>
+    <h1>{{ title }}</h1>
+    {% if rendered_introduction|trim %}<div class="actools-chapter__introduction">{{ rendered_introduction }}</div>{% endif %}
+    {% if start_link %}<div class="actools-chapter__start">{{ start_link }}</div>{% endif %}
+    {% if continue_progress %}<div class="actools-chapter__continue">{{ continue_progress }}</div>{% endif %}
+  </header>
+  {% if rendered_objectives|trim or rendered_prerequisites|trim %}
+    <div class="actools-chapter__orientation">
+      {% if rendered_objectives|trim %}<section><h2>{{ 'What you will learn'|t }}</h2>{{ rendered_objectives }}</section>{% endif %}
+      {% if rendered_prerequisites|trim %}<section><h2>{{ 'Before you begin'|t }}</h2>{{ rendered_prerequisites }}</section>{% endif %}
+    </div>
+  {% endif %}
+  {% set core_lessons = lessons|filter(lesson => lesson.path|default('core') != 'extension') %}
+  {% set extension_lessons = lessons|filter(lesson => lesson.path|default('core') == 'extension') %}
+  <section class="actools-chapter__route" aria-labelledby="actools-chapter-route-title">
+    <div class="actools-chapter__route-heading"><h2 id="actools-chapter-route-title">{{ 'Your route through this chapter'|t }}</h2></div>
+    {% if core_lessons %}
+      <section class="actools-chapter__path" aria-labelledby="actools-core-route-title">
+        <h3 id="actools-core-route-title">{{ 'Core lessons'|t }}</h3>
+        <p class="actools-chapter__path-description">{{ 'Follow the core lessons in order, or return to a topic.'|t }}</p>
+        <ol class="actools-lesson-list">
+          {% for lesson in core_lessons %}
+            <li class="actools-lesson-list__item">
+              <span class="actools-lesson-list__number" aria-hidden="true">{{ '%02d'|format(loop.index) }}</span>
+              <div class="actools-lesson-list__content">
+                <h4><a href="{{ lesson.url }}">{{ lesson.title }}<span aria-hidden="true"> →</span></a></h4>
+                {% set lesson_summary = lesson.summary|render %}{% if lesson_summary|trim %}<div class="actools-lesson-list__summary">{{ lesson_summary }}</div>{% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ol>
+      </section>
+    {% endif %}
+    {% if extension_lessons %}
+      <section class="actools-chapter__path actools-chapter__path--extension" aria-labelledby="actools-extension-route-title">
+        <h3 id="actools-extension-route-title">{{ 'Optional extensions'|t }}</h3>
+        <p class="actools-chapter__path-description">{{ 'Explore these lessons beyond the core route.'|t }}</p>
+        <ol class="actools-lesson-list">
+          {% for lesson in extension_lessons %}
+            <li class="actools-lesson-list__item">
+              <span class="actools-lesson-list__number" aria-hidden="true">{{ '%02d'|format(loop.index) }}</span>
+              <div class="actools-lesson-list__content">
+                <h4><a href="{{ lesson.url }}">{{ lesson.title }}<span aria-hidden="true"> →</span></a></h4>
+                {% set lesson_summary = lesson.summary|render %}{% if lesson_summary|trim %}<div class="actools-lesson-list__summary">{{ lesson_summary }}</div>{% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ol>
+      </section>
+    {% endif %}
+    {% if not core_lessons and not extension_lessons %}<p>{{ 'Lessons will appear here when they are available.'|t }}</p>{% endif %}
+  </section>
+  {% if rendered_resources|trim %}<section class="actools-chapter__resources"><h2>{{ 'Chapter resources'|t }}</h2>{{ rendered_resources }}</section>{% endif %}
+</article>

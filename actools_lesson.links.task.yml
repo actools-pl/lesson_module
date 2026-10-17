@@ -1,0 +1,5 @@
+actools_lesson.study_tab:
+  title: 'Study'
+  route_name: actools_lesson.reader
+  base_route: entity.node.canonical
+  weight: 5

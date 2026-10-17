@@ -1,0 +1,19 @@
+name: Actools Lessons
+type: module
+version: '1.0.2'
+description: 'Elegant, revisioned chapter and lesson authoring with guided steps, continuous reading and private progress.'
+package: Aarin Content Tools
+core_version_requirement: ^11.3
+php: 8.3
+dependencies:
+  - drupal:node
+  - drupal:field
+  - drupal:text
+  - drupal:filter
+  - drupal:ckeditor5
+  - drupal:options
+  - drupal:file
+  - drupal:image
+  - drupal:user
+  - drupal:taxonomy
+configure: actools_lesson.dashboard
