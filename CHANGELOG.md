@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.3 — 2026-10-17
+
+Corrective release following the independent review of 1.0.2:
+
+- Protect complete native-form submissions against input/body truncation; bound new native-editor content to 120 components across all steps and report actual server capacity. Existing stored documents and native numeric reordering are retained.
+- Leave empty lesson fields empty on ordinary Notes/Assignment resources.
+- Allocate restored/reintroduced step versions above retained history, preserving learner revisit accuracy and stable UUIDs.
+- Share meaningful-content checks between publication and workbench readiness; preflight required learning-path choices through callback-aware Drupal APIs.
+- Keep generated absolute reader URLs intact and let individual figure alternative text name full-resolution links.
+- Correct explicit-dark print palettes, matching-root Drupal behavior attachment, and missing/blocked MathJax fallback notices. Version changed browser integrations for cache refresh, while retaining the bundled MathJax 4.1.3 assets.
+- Retain focused native/browser regressions and provide a repeatable isolated test/CI entry point. No new lesson component types, assessments or grading features.
+
+
 ## 1.0.2 — 2026-10-17
 
 Publish the standalone Drupal module at `actools-pl/lesson_module`, with installation, BOA deployment, editor, operations and contributor guidance. Integrate the current `actools_bs5` sticky header through a scoped compatibility adapter that defers to the theme's native offset contract. Preserve secondary authoring controls when the theme adds Bootstrap primary styling. No database schema change; existing content, revisions, IDs and progress are retained.

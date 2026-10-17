@@ -1,4 +1,4 @@
-# Editor guide — Actools Lessons 1.0.2
+# Editor guide — Actools Lessons 1.0.3
 
 Open **Content → Actools Lessons** (`/admin/content/actools-lessons`). The workbench shows chapter assignment, step review readiness and whether a lesson is **Draft**, **Published** or **Published with draft**. Available actions depend on your native Drupal content, revision and text-format permissions. The workbench permission alone does not grant editing or publishing.
 
@@ -27,7 +27,7 @@ Figures use **public** storage. Their file URLs remain publicly accessible even 
 
 The numbered outline jumps to a step and opens it for editing. Saved lessons open compactly; open component summaries to edit their controls. Opening or closing a section does not alter teaching content. Required-field and step-field errors open affected sections so invalid hidden fields can be corrected. Publication errors also appear in Drupal’s native error messages.
 
-Use **Add**, **Duplicate**, **Remove** and **Move up/down** controls for steps and components. They work with keyboard and without JavaScript. Numeric order controls are also available; lower numbers appear first. Edits are persisted only by saving the lesson. Duplicates receive independent identities; moving existing content preserves its stable links. The builder is bounded to 40 steps and 60 components per step.
+Use **Add**, **Duplicate**, **Remove** and **Move up/down** controls for steps and components. They work with keyboard and without JavaScript. Numeric order controls are also available; lower numbers appear first. Edits are persisted only by saving the lesson. Duplicates receive independent identities; moving existing content preserves its stable links. The native builder permits up to 40 steps and 60 components in any step, with at most 120 components across the lesson when adding or duplicating. It checks the whole form against server input/upload limits before accepting changes. Existing larger stored documents are preserved; complete edits or removals require a server able to receive the whole form. See [authoring capacity](UPGRADE_1_0_3.md#authoring-capacity).
 
 Meaningful changes to teaching components advance that step's content version. Learner read marks for older versions then ask for a revisit. Changing a step’s title or its position among steps retains its teaching-content version. Reordering teaching components within a step changes that step’s content version. Do not recreate an existing step merely to move it.
 

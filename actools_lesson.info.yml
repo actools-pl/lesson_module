@@ -1,6 +1,6 @@
 name: Actools Lessons
 type: module
-version: '1.0.2'
+version: '1.0.3'
 description: 'Elegant, revisioned chapter and lesson authoring with guided steps, continuous reading and private progress.'
 package: Aarin Content Tools
 core_version_requirement: ^11.3

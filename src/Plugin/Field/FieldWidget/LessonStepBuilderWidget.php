@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Drupal\actools_lesson\Plugin\Field\FieldWidget;
 
+use Drupal\actools_lesson\Service\AuthoringInputGuard;
+use Drupal\actools_lesson\Service\LessonAccess;
 use Drupal\Component\Utility\Html;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Utility\Crypt;
 use Drupal\Core\Field\Attribute\FieldWidget;
+use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -15,6 +18,7 @@ use Drupal\Core\Render\Element;
 use Drupal\Core\Security\TrustedCallbackInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Site\Settings;
+use Drupal\node\NodeInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 
@@ -39,6 +43,8 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
   ];
 
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state): array {
+    AuthoringInputGuard::attach($form);
+    AuthoringInputGuard::assertComplete($form_state);
     // The UUID inventory is server state, including on non-AJAX submissions.
     // Without form caching a new-node POST would rebuild unrelated UUIDs before
     // its submit handler can recover the user's entered step data.
@@ -57,7 +63,9 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
         $state['actools_steps'] = $this->restoreInventory((string) $submitted['inventory'], $state['actools_steps'], $items);
         $state['actools_steps'] = static::captureRows($submitted, $state['actools_steps']);
       }
-      if (!$state['actools_steps']) {
+      $entity = $items->getEntity();
+      $initial_step = !$entity instanceof NodeInterface || $entity->bundle() !== 'actools_resource' || LessonAccess::isLesson($entity);
+      if (!$state['actools_steps'] && $initial_step) {
         $step = static::newStep();
         $state['actools_steps'][$step['step_id']] = $step;
       }
@@ -78,15 +86,18 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
       '#prefix' => '<div id="' . $wrapper . '">',
       '#suffix' => '</div>',
       '#after_build' => [[static::class, 'afterBuildEditor']],
+      '#element_validate' => [[AuthoringInputGuard::class, 'validateWidget']],
     ];
     if (!empty($state['actools_focus'])) {
       $element['#attributes']['data-actools-focus'] = $state['actools_focus'];
     }
     $element['intro'] = ['#markup' => '<p class="actools-author__intro">' . $this->t('Build meaningful learning steps. Keep an explanation, its figure and its assumptions together. Move controls work with keyboard or without JavaScript. Changes are saved only when you save the lesson.') . '</p>'];
+    $count = AuthoringInputGuard::componentCount($state['actools_steps']);
+    $element['capacity'] = ['#type' => 'html_tag', '#tag' => 'p', '#value' => $this->t('@count teaching components. New native-editor content is limited to 120 components across the lesson, 40 steps and 60 components per step. Existing larger documents are preserved; editing them requires sufficient server capacity.', ['@count' => $count]), '#attributes' => ['class' => ['actools-author__notice']]];
     // Drupal 11 forbids form-cache writes on the initial GET. Carry a signed
     // identity-only inventory into the first POST; authored content stays in
     // normal controls, never in a hidden content/JSON editor.
-    $element['inventory'] = ['#type' => 'hidden', '#value' => $this->inventoryToken($state['actools_steps'], $items)];
+    $element['inventory'] = ['#type' => 'hidden', '#value' => $this->inventoryToken($state['actools_steps'], $items), '#attributes' => ['data-actools-identity-inventory' => '']];
     $element['ui_open_steps'] = ['#type' => 'hidden', '#default_value' => implode(',', $ui['steps']), '#attributes' => ['data-actools-open-steps' => '']];
     $element['ui_open_components'] = ['#type' => 'hidden', '#default_value' => implode(',', $ui['components']), '#attributes' => ['data-actools-open-components' => '']];
     $element['outline'] = ['#type' => 'html_tag', '#tag' => 'nav', '#attributes' => ['class' => ['actools-author__outline'], 'aria-label' => (string) $this->t('Lesson step outline')]];
@@ -119,17 +130,25 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
       $step_element['actions'] = ['#type' => 'container', '#attributes' => ['class' => ['actools-author__actions']]];
       foreach (['step_up' => 'Move step up', 'step_down' => 'Move step down', 'step_duplicate' => 'Duplicate step', 'step_remove' => 'Remove step'] as $action => $label) {
         $step_element['actions'][$action] = $this->actionButton($label, $action, $path, $wrapper, $sid);
+        if ($action === 'step_duplicate' && $count + count($step['components']) > AuthoringInputGuard::MAX_COMPONENTS) {
+          $step_element['actions'][$action]['#disabled'] = TRUE;
+        }
       }
       $step_element['components'] = ['#type' => 'container', '#tree' => TRUE, '#attributes' => ['class' => ['actools-author__components']]];
       foreach ($step['components'] as $component) {
         $cid = $component['id'];
         $step_element['components'][$cid] = $this->componentElement($component, $path, $wrapper, $sid, in_array($cid, $ui['components'], TRUE));
+        if ($count >= AuthoringInputGuard::MAX_COMPONENTS) {
+          $step_element['components'][$cid]['actions']['component_duplicate']['#disabled'] = TRUE;
+        }
       }
       $step_element['new_type'] = ['#type' => 'select', '#title' => $this->t('Teaching component'), '#options' => array_map(fn ($label) => $this->t($label), self::TYPES), '#default_value' => 'text'];
       $step_element['add_component'] = $this->actionButton('Add component', 'component_add', $path, $wrapper, $sid);
+      $step_element['add_component']['#disabled'] = $count >= AuthoringInputGuard::MAX_COMPONENTS;
       $element['steps'][$sid] = $step_element;
     }
     $element['add_step'] = $this->actionButton('Add learning step', 'step_add', $path, $wrapper);
+    $element['add_step']['#disabled'] = $count >= AuthoringInputGuard::MAX_COMPONENTS;
     $element['add_step']['#attributes']['data-actools-focus-key'] = 'add-step';
     $element['notice'] = ['#type' => 'html_tag', '#tag' => 'p', '#value' => $this->t('Removing content here affects this unsaved revision. Existing published content remains until a replacement is published.'), '#attributes' => ['class' => ['actools-author__notice']]];
     return $element;
@@ -210,6 +229,7 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
   }
 
   public static function submitAction(array &$form, FormStateInterface $form_state): void {
+    AuthoringInputGuard::assertComplete($form_state);
     $button = $form_state->getTriggeringElement();
     $path = $button['#actools_path'];
     $name = array_pop($path);
@@ -221,8 +241,9 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
     $action = $button['#actools_action'];
     $sid = $button['#actools_step'];
     $cid = $button['#actools_component'];
+    $total = AuthoringInputGuard::componentCount($steps);
     $focus = $cid ? 'component:' . $cid : 'step:' . $sid;
-    if ($action === 'step_add' && count($steps) < 40) {
+    if ($action === 'step_add' && count($steps) < 40 && $total < AuthoringInputGuard::MAX_COMPONENTS) {
       $step = static::newStep();
       $steps[$step['step_id']] = $step;
       $sid = $step['step_id'];
@@ -238,7 +259,7 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
         $sid = $keys[$position + 1] ?? $keys[$position - 1] ?? '';
         $focus = $sid ? 'step:' . $sid : 'add-step';
       }
-      elseif ($action === 'step_duplicate' && count($steps) < 40) {
+      elseif ($action === 'step_duplicate' && count($steps) < 40 && $total + count($steps[$sid]['components']) <= AuthoringInputGuard::MAX_COMPONENTS) {
         $copy = $steps[$sid];
         $copy['step_id'] = static::uuid();
         $copy['title'] = trim($copy['title'] . ' (copy)');
@@ -258,7 +279,7 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
       }
       else {
         $components = $steps[$sid]['components'];
-        if ($action === 'component_add' && count($components) < 60) {
+        if ($action === 'component_add' && count($components) < 60 && $total < AuthoringInputGuard::MAX_COMPONENTS) {
           $type = $raw['steps'][$sid]['new_type'] ?? 'text';
           $component = static::newComponent(isset(self::TYPES[$type]) ? $type : 'text');
           $components[$component['id']] = $component;
@@ -273,7 +294,7 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
             $cid = $keys[$position + 1] ?? $keys[$position - 1] ?? '';
             $focus = $cid ? 'component:' . $cid : 'step:' . $sid;
           }
-          elseif ($action === 'component_duplicate' && count($components) < 60) {
+          elseif ($action === 'component_duplicate' && count($components) < 60 && $total < AuthoringInputGuard::MAX_COMPONENTS) {
             $copy = $components[$cid];
             $copy['id'] = static::uuid();
             $components = static::insertAfter($components, $cid, $copy['id'], $copy);
@@ -320,13 +341,13 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
     $form_state->setRebuild();
   }
 
-  public static function ajaxRefresh(array &$form, FormStateInterface $form_state): array {
+  public static function ajaxRefresh(array &$form, FormStateInterface $form_state): AjaxResponse|array {
     $parents = $form_state->getTriggeringElement()['#array_parents'];
     while ($parents) {
       array_pop($parents);
       $element = NestedArray::getValue($form, $parents);
       if (is_array($element) && !empty($element['#actools_editor'])) {
-        return $element;
+        return AuthoringInputGuard::ajaxResponse($form, $element, $form_state->getTriggeringElement()['#ajax']['wrapper']);
       }
     }
     return $form;
@@ -399,6 +420,7 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
   }
 
   public function massageFormValues(array $values, array $form, FormStateInterface $form_state): array {
+    AuthoringInputGuard::assertComplete($form_state);
     $state = static::getWidgetState($form['#parents'], $this->fieldDefinition->getName(), $form_state);
     $steps = static::captureRows($values, $state['actools_steps'] ?? []);
     $baseline = [];
@@ -458,7 +480,7 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
           continue;
         }
         foreach (['heading', 'tex', 'alt', 'caption', 'description', 'source'] as $key) {
-          if (isset($raw[$key]) && is_string($raw[$key])) {
+          if (isset($raw[$key]) && is_string($raw[$key]) && ($raw[$key] !== '' || array_key_exists($key, $component))) {
             $component[$key] = $raw[$key];
           }
         }
@@ -529,7 +551,10 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
       foreach ($step['components'] as $cid => $component) {
         $inventory[$sid][$cid] = $component['type'];
       }
+      ksort($inventory[$sid]);
     }
+    // This token authenticates identities/types, not editable numeric order.
+    ksort($inventory);
     $payload = base64_encode(json_encode($inventory, JSON_THROW_ON_ERROR));
     return $payload . '.' . Crypt::hmacBase64($payload, $this->inventoryKey($items));
   }

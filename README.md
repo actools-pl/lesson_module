@@ -14,11 +14,13 @@ The module supplies the lesson experience. Your Drupal theme continues to supply
 - [Tests](tests/README.md) and [executed validation](VALIDATION.md)
 - [Necessary enhancements review](docs/SECOND_REVIEW.md)
 
+See [the 1.0.3 corrective-upgrade notes](docs/UPGRADE_1_0_3.md) for the independent review findings and their fixes.
+
 ## Requirements
 
 - Drupal **11.3 or later within Drupal 11**, PHP **8.3+**. Tested versions and limits are recorded in [VALIDATION.md](VALIDATION.md).
 - Core Node, Field, Text, Filter, CKEditor 5, Options, File, Image, User and Taxonomy modules; these dependencies are declared and enabled by Drupal.
-- A writable public file directory for teaching diagrams.
+- A writable public file directory for teaching diagrams. Full native-editor capacity needs `max_input_vars=4096`, `post_max_size=128M` and `upload_max_filesize=20M`; upload-count limits must cover the actual pending file controls. The form checks its complete input budget and blocks unsafe submissions. See [server capacity](docs/UPGRADE_1_0_3.md#authoring-capacity).
 - JavaScript enables mathematics typesetting and small interface enhancements. Reading, navigation, authoring actions and account progress also work without JavaScript. TeX source remains visible when typesetting is unavailable.
 
 No Paragraphs, Layout Builder, Bootstrap, React, remote CDN, account service or extra Composer runtime package is required. MathJax and its fonts are included locally with their upstream licenses.
@@ -53,9 +55,9 @@ Test on a staging copy of your Drupal site first, with a database/configuration/
 
 A storage conflict stops installation with an explanation. Resolve it through a reviewed configuration change; do not delete or replace existing Actools fields to force installation. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Upgrade from 1.0.0 or 1.0.1
+## Upgrade from 1.0.0, 1.0.1 or 1.0.2
 
-Replace the module directory with this 1.0.2 release and rebuild Drupal caches (`vendor/bin/drush cr`). Preserve the site's database and public files. No module uninstall/reinstall or database schema migration is required. Reload any open lesson editor forms after updating.
+Replace the module directory with this 1.0.3 release and rebuild Drupal caches (`vendor/bin/drush cr`). Preserve the site's database and public files. No module uninstall/reinstall or database schema migration is required. Reload any open lesson editor forms after updating.
 
 Version 1.0.2 adds a scoped integration adapter for the current `actools_bs5` theme and keeps compatibility with its proposed header contract. See [the integration guide](docs/THEME_INTEGRATION.md) for the exact theme snapshot and validation scope.
 
@@ -102,7 +104,7 @@ Uninstall is guarded. Export content first. Drupal also prevents removal of the 
 
 - `src/`, templates, styles and behavior: production module source.
 - `modules/actools_lesson_demo/`: optional original Surface Tension example and diagrams.
-- `tests/`: actual Drupal unit, kernel and functional tests.
+- `tests/`: Drupal Unit/Kernel/Functional tests, retained browser regressions and a disposable CI runner.
 - `docs/`: structure, theme integration and future adapter boundaries.
 - `VALIDATION.md`: executed validation and deployment limits.
 - `libraries/`: pinned MathJax browser assets and local fonts with upstream notices.

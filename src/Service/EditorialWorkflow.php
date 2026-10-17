@@ -31,6 +31,7 @@ final class EditorialWorkflow {
     private readonly AccountProxyInterface $currentUser,
     private readonly LockBackendInterface $lock,
     private readonly TimeInterface $time,
+    private readonly TeachingContentCompleteness $completeness,
     private readonly ?object $moderationInformation = NULL,
   ) {}
 
@@ -224,12 +225,12 @@ final class EditorialWorkflow {
         continue;
       }
       $total++;
-      $components = json_decode((string) $step->components, TRUE);
-      if ($step->reviewed && is_array($components) && $components) {
+      $complete = $this->completeness->isCompleteStep($step->getValue(), $cache);
+      if ($step->reviewed && $complete) {
         $ready++;
       }
     }
-    return ['label' => (string) $this->t('@ready of @total steps reviewed', ['@ready' => $ready, '@total' => $total]), 'ready' => $ready, 'total' => $total, 'cacheability' => $cache];
+    return ['label' => (string) $this->t('@ready of @total steps reviewed and complete', ['@ready' => $ready, '@total' => $total]), 'ready' => $ready, 'total' => $total, 'cacheability' => $cache];
   }
 
   /** Signed identity metadata only; no authored content is sent in this token. */

@@ -256,7 +256,7 @@
   .actools-lesson-list__number { flex-basis: 2.1rem; }
 }
 /* Follow the OS by default; an explicit theme appearance wins. */
-@media (prefers-color-scheme: dark) {
+@media screen and (prefers-color-scheme: dark) {
   .actools-lesson,
   .actools-chapter { --al-ink: #e6eff0; --al-muted: #bdcccf; --al-accent: #8ddbd4; --al-accent-hover: #b5f2eb; --al-paper: #14272e; --al-soft: #1b3239; --al-tint: #234148; --al-border: #516970; --al-warning: #f2c58f; --al-warning-tint: #3a3025; --al-focus: #ffcb7b; --al-on-accent: #14272e; color-scheme: dark; }
   .actools-lesson .actools-step-rail__item.is-current .actools-step-rail__number,
@@ -264,6 +264,7 @@
   .actools-lesson .actools-progress input.actools-progress__primary,
   .actools-lesson .actools-progress button.actools-progress__primary { color: var(--al-on-accent); }
 }
+@media screen {
 [data-bs-theme='dark'] .actools-lesson,
 [data-bs-theme='dark'] .actools-chapter,
 [data-theme='dark'] .actools-lesson,
@@ -278,6 +279,7 @@
 [data-theme='dark'] .actools-chapter__start a,
 [data-bs-theme='dark'] .actools-progress .actools-progress__primary,
 [data-theme='dark'] .actools-progress .actools-progress__primary { color: var(--al-on-accent); }
+}
 @media (prefers-reduced-motion: reduce) {
   .actools-lesson *,
   .actools-chapter * { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
@@ -290,7 +292,7 @@
 }
 @media print {
   .actools-lesson,
-  .actools-chapter { --al-ink: #000; --al-muted: #333; --al-accent: #000; --al-paper: #fff; --al-tint: #fff; --al-border: #999; color: #000 !important; background: #fff !important; font-size: 10.5pt; line-height: 1.5; max-inline-size: none; border: 0; padding: 0; color-scheme: light; }
+  .actools-chapter { --al-ink: #000; --al-muted: #333; --al-accent: #000; --al-accent-hover: #000; --al-paper: #fff; --al-soft: #fff; --al-tint: #fff; --al-border: #999; --al-warning: #000; --al-warning-tint: #fff; --al-focus: #000; --al-on-accent: #fff; color: #000 !important; background: #fff !important; font-size: 10.5pt; line-height: 1.5; max-inline-size: none; border: 0; padding: 0; color-scheme: light; }
   .actools-lesson__layout { display: block; border: 0; }
   .actools-lesson__main { padding: 0; }
   .actools-lesson__chapter,

@@ -28,7 +28,10 @@
 
   Drupal.behaviors.actoolsLessonReader = {
     attach(context) {
-      once('actools-reader', '[data-actools-reader]', context).forEach((reader) => {
+      const readers = [];
+      if (context.matches && context.matches('[data-actools-reader]')) readers.push(context);
+      if (context.querySelectorAll) readers.push(...context.querySelectorAll('[data-actools-reader]'));
+      once('actools-reader', readers).forEach((reader) => {
         // CSS consumes the theme contract or an optional scoped adapter. The
         // reader never measures or replaces the site's global header.
         const smallScreen = window.matchMedia('(max-width: 75.99rem)');
@@ -107,7 +110,7 @@
       });
       // Browser print also expands closed answers when printing a guided view.
       // The dedicated print route already emits all steps and open answers.
-      once('actools-print-events', 'html', context).forEach(() => {
+      once('actools-print-events', document.documentElement).forEach(() => {
         window.addEventListener('beforeprint', () => {
           document.querySelectorAll('.actools-lesson details, .actools-chapter details').forEach((details) => {
             printDetails.set(details, details.open);

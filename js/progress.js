@@ -20,7 +20,10 @@
 
   Drupal.behaviors.actoolsLessonProgress = {
     attach(context) {
-      once('actools-private-progress', '[data-actools-completed-steps]', context).forEach((form) => {
+      const forms = [];
+      if (context.matches && context.matches('[data-actools-completed-steps]')) forms.push(context);
+      if (context.querySelectorAll) forms.push(...context.querySelectorAll('[data-actools-completed-steps]'));
+      once('actools-private-progress', forms).forEach((form) => {
         const reader = form.closest('[data-actools-reader]');
         if (!reader) return;
         const completed = ids(form.getAttribute('data-actools-completed-steps'));

@@ -1,5 +1,5 @@
 reader:
-  version: 1.0.2
+  version: 1.0.3
   css:
     theme:
       css/lesson.css: {}
@@ -12,7 +12,8 @@ reader:
     - core/drupalSettings
     - actools_lesson/math
 math:
-  version: 4.1.3
+  # Track integration changes here; bundled upstream MathJax remains 4.1.3.
+  version: 1.0.3
   js:
     js/math-config.js: { weight: -10, preprocess: false }
     libraries/mathjax/tex-chtml.js: { weight: -9, minified: true, preprocess: false }
@@ -20,7 +21,7 @@ math:
     - core/drupal
     - core/once
 author:
-  version: 1.0.2
+  version: 1.0.3
   css:
     theme:
       css/author.css: {}
@@ -31,7 +32,7 @@ author:
     - core/once
     - core/drupal.announce
 bs5_integration:
-  version: 1.0.2
+  version: 1.0.3
   css:
     theme:
       css/bs5-integration.css: {}

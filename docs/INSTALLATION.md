@@ -1,4 +1,4 @@
-# Installation — Actools Lessons 1.0.2
+# Installation — Actools Lessons 1.0.3
 
 This repository contains the Drupal module at its root. The GitHub repository name is **not** its Drupal machine name.
 
@@ -16,7 +16,7 @@ Clone or extract the repository into a directory named `actools_lesson`. The res
 
 The release declares Drupal **11.3+ within Drupal 11** and PHP **8.3+**. Its declared core dependencies include Node, Field, Text, Filter, CKEditor 5, Options, File, Image, User and Taxonomy. Drupal enables required dependencies when enabling the module. Teaching figures require writable public file storage. MathJax and fonts are bundled locally; no frontend package build or remote CDN is required.
 
-Final **1.0.2** automated validation passed **60 tests / 767 assertions** on **Drupal 11.4.10, PHP 8.3.6 and SQLite**. The full Chromium authoring/reading workflows were exercised on 1.0.1; the status of the new focused 1.0.2 theme-adapter fixture is recorded separately in the validation record. These checks do not certify a complete production theme/site. PHP 8.4, Percona, BOA/Nginx, the installed production theme and its content-security policy remain staging checks. See [VALIDATION.md](../VALIDATION.md) for the evidence and limits.
+Final **1.0.3** native validation passed **86 tests / 1272 assertions** on **Drupal 11.4.10, PHP 8.3.6 and SQLite**, followed by the retained browser regressions. Unit 8/53, Kernel 48/718 and Functional 30/501 ran through the shared disposable test entry point. The full installed-Drupal UI baseline remains 1.0.1; the focused theme and failure fixtures have their own scope. PHP 8.4, Percona, BOA/Nginx, the installed production theme and CSP remain target-platform acceptance checks. See [VALIDATION.md](../VALIDATION.md) for exact evidence and hosted-CI status.
 
 ## Choose the correct codebase and site
 
@@ -40,7 +40,7 @@ cd /absolute/path/to/drupal-project
 git clone https://github.com/actools-pl/lesson_module.git web/modules/custom/actools_lesson
 ```
 
-This initial repository upload has no release tag. Select the reviewed 1.0.2 source commit through your normal release process and record its commit ID. Do not assume that an arbitrary future repository HEAD is this release. For an existing checkout, inspect local changes before updating it; do not clone over it.
+This corrective release has no release tag. Select the reviewed 1.0.3 source commit through your normal release process and record its commit ID. Do not assume that an arbitrary future repository HEAD is this release. For an existing checkout, inspect local changes before updating it; do not clone over it.
 
 A non-Composer or managed platform may use a different document root. Place `actools_lesson` under that actual root's `modules/custom/`, using the platform's staging/build process.
 

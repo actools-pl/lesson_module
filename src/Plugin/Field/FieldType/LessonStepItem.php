@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\actools_lesson\Plugin\Field\FieldType;
 
+use Drupal\actools_lesson\Service\StepVersionHistory;
 use Drupal\Core\Field\Attribute\FieldType;
 use Drupal\Core\Field\FieldItemBase;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -77,6 +78,7 @@ final class LessonStepItem extends FieldItemBase {
 
   public function preSave(): void {
     parent::preSave();
+    $this->prepareReintroducedVersion();
     foreach ($this->figureIds() as $fid) {
       if (($file = File::load($fid)) && str_starts_with((string) $file->getMimeType(), 'image/')) {
         if ($file->isTemporary()) {
@@ -106,6 +108,60 @@ final class LessonStepItem extends FieldItemBase {
       }
     }
     return FALSE;
+  }
+
+  /**
+   * Reintroducing a removed UUID cannot reuse an earlier reading identity.
+   *
+   * This only allocates automatically for an item absent from its immutable
+   * stored source revision. A modified historical source gets no exemption
+   * from supplying a newer version for changed or reintroduced content.
+   */
+  private function prepareReintroducedVersion(): void {
+    $entity = $this->getEntity();
+    $field = $this->getFieldDefinition()->getName();
+    if (!$entity instanceof NodeInterface || $entity->isNew()
+      || $field !== 'field_actools_lesson_steps' || !$entity->getLoadedRevisionId()
+      || (int) $this->content_version < 1) {
+      return;
+    }
+    $storage = \Drupal::entityTypeManager()->getStorage('node');
+    $source = $storage->loadRevisionUnchanged($entity->getLoadedRevisionId());
+    $langcode = $entity->language()->getId();
+    if (!$source || !$source->hasTranslation($langcode)) {
+      return;
+    }
+    $source = $source->getTranslation($langcode);
+    $id = (string) $this->step_id;
+    $old = NULL;
+    foreach ($source->get($field)->getValue() as $row) {
+      if ($row['step_id'] === $id) {
+        $old = $row;
+        break;
+      }
+    }
+    $historical_source = (int) $entity->getLoadedRevisionId() !== (int) $storage->getLatestRevisionId($entity->id());
+    if ($old && !$historical_source) {
+      return;
+    }
+    $maximum = StepVersionHistory::maximumVersions($entity, $field, [$id])[$id] ?? 0;
+    if (!$old) {
+      if ($maximum > 0) {
+        $this->content_version = max((int) $this->content_version, $maximum + 1);
+      }
+      return;
+    }
+    $current = $storage->loadUnchanged($entity->id());
+    $present = FALSE;
+    if ($current && $current->hasTranslation($langcode)) {
+      foreach ($current->getTranslation($langcode)->get($field)->getValue() as $row) {
+        $present = $present || $row['step_id'] === $id;
+      }
+    }
+    $changed = json_decode((string) $old['components'], TRUE) != json_decode((string) $this->components, TRUE);
+    if ((!$present || $changed) && (int) $this->content_version <= $maximum) {
+      throw new \InvalidArgumentException('Changed or reintroduced teaching content requires a newer content version than its retained history.');
+    }
   }
 
   /**
@@ -142,10 +198,13 @@ final class LessonStepItem extends FieldItemBase {
     foreach ($current->get($field)->getValue() as $row) {
       $current_steps[$row['step_id']] = $row;
     }
+    $maximums = StepVersionHistory::maximumVersions($revision, $field, array_column($rows, 'step_id'));
     foreach ($rows as &$row) {
       $now = $current_steps[$row['step_id']] ?? NULL;
       $same_content = $now && json_decode((string) $now['components'], TRUE) == json_decode((string) $row['components'], TRUE);
-      $row['content_version'] = max((int) $row['content_version'], (int) ($now['content_version'] ?? 0)) + (int) !$same_content;
+      $row['content_version'] = $same_content
+        ? (int) $now['content_version']
+        : max((int) $row['content_version'], $maximums[$row['step_id']] ?? 0) + 1;
     }
     unset($row);
     $revision->set($field, $rows);

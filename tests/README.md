@@ -1,34 +1,86 @@
-# Drupal integration tests
+# Repeatable Drupal and browser checks
 
-Kernel and functional tests exercise Drupal storage, access handlers, render routes, configuration and native revisions. Unit tests supplement progress-store boundary cases.
+`tests/run-ci.sh` is the common local and CI entry point. It runs the native Unit and Kernel suites, discovers every `*Test.php` under `tests/src/Functional`, then runs the retained Chromium regressions. Each Functional file gets a fresh PHP server and SQLite database. A failing suite stops the run and retains its reports.
 
-Run them in an isolated Drupal development checkout containing this module, with the matching `drupal/core-dev` dependencies. Keep the test database and files separate from production.
+The GitHub workflow in `.github/workflows/tests.yml` uses the same scripts on Ubuntu 24.04 with PHP 8.3 and 8.4. It pins Drupal and matching `drupal/core-dev` to 11.4.10, Drush to 13.8.0 and Playwright to 1.62.1. Top-level Drupal versions are pinned; Composer resolves their dependencies into a lock file retained with each run. This tests one Drupal patch version, not every version permitted by the module's Composer constraint.
+
+At release preparation, this new hosted workflow had not run. Local results do not establish a GitHub-hosted PHP 8.4 pass. Check the Actions result for the exact published commit. The workflow runs on pushes, pull requests and manual dispatch, has repository `contents: read` permission, does not retain checkout credentials, and contains no deployment or repository-write step.
+
+## Create a disposable development project
+
+Use Linux with Bash, Composer 2, Node 22+ and PHP 8.3+. The workflow selects Node 24. PHP needs Drupal's usual extensions plus SQLite, DOM, GD, mbstring, cURL and ZIP. Use matching PHP runtimes for Composer, PHPUnit and the test server.
+
+From the module checkout:
 
 ```sh
-export SIMPLETEST_DB='sqlite://localhost//absolute/path/to/test.sqlite'
-export SIMPLETEST_BASE_URL='http://127.0.0.1:8080'
-export BROWSERTEST_OUTPUT_DIRECTORY='/absolute/path/to/browser-output'
-vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/custom/actools_lesson/tests/src/Unit
-vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/custom/actools_lesson/tests/src/Kernel
+export ACTOOLS_TEST_PROJECT="$(mktemp -d /tmp/actools-drupal.XXXXXX)"
+bash tests/bootstrap.sh
+npm --prefix tests/browser ci --ignore-scripts --no-audit --no-fund
+(cd tests/browser && npx playwright install --with-deps chromium)
+bash tests/run-ci.sh
 ```
 
-Create the browser-output directory before using the environment variables above. Unit and Kernel tests do not need a web server. Use the matching Drupal development dependencies and a working disposable local Drupal installation for Functional tests; the base site need not contain demo content. Some filesystem and database drivers require additional setup described in Drupal core's test documentation.
+The browser dependency command installs Chromium and its system dependencies on the disposable machine. The module itself has no Node runtime dependency.
 
-## Functional tests with isolated server lifetimes
+Bootstrap accepts only a new or empty project directory. It installs a minimal base site with a separate temporary SQLite database and links this module into `web/modules/custom/actools_lesson`. It never reuses an existing nonempty Drupal project. Functional tests create their own test sites; demo content is unnecessary. Keep the disposable project, generated base-site state and test results separate from a production installation.
 
-The supplied runner gives each Functional class a fresh local PHP server and a distinct SQLite database, retaining JUnit, browser output and logs in a new temporary directory. It does not use the exported `SIMPLETEST_DB` above. SQLite support must be enabled in the chosen PHP runtime. From the module checkout:
+The default Drupal pin can be changed to another explicit 11.4.x patch with `ACTOOLS_TEST_DRUPAL_VERSION`; bootstrap pins `core-recommended`, scaffold, project-message and `core-dev` together. Re-run all checks after changing it.
+
+## Existing disposable project and individual suites
+
+An existing test project must contain the matching core-dev dependencies, a working disposable base site and this checkout at `web/modules/custom/actools_lesson`. The shared runner verifies that module path before execution. The project's settings remain unchanged during test runs.
 
 ```sh
 export ACTOOLS_TEST_PROJECT='/absolute/path/to/disposable-drupal-project'
+bash tests/run-ci.sh unit
+bash tests/run-ci.sh kernel
+bash tests/run-ci.sh functional
+bash tests/run-ci.sh browser
+```
+
+Unit and Kernel tests do not launch a web server. Functional tests use the real Drupal document root as both server working directory and document root, with an absolute core router path. This is significant for namespace discovery and repeated requests. Run the script and its server in the same environment/network namespace.
+
+Both PHP CLI tests and the Functional server receive `memory_limit=768M`, `max_input_vars=4096`, `post_max_size=128M` and `upload_max_filesize=20M`. They also use `display_errors=0` and `log_errors=1`: the deliberate request-truncation case must log PHP's parser warning while allowing Drupal's intended error response, without warning text causing a secondary header/session failure. Each runner writes these settings into its results directory and appends that directory to `PHP_INI_SCAN_DIR`, preserving existing/default scan directories and extensions. This also configures PHPUnit's isolated child processes, which do not inherit the parent command's `-d` arguments. The effective startup settings and loaded/scanned INI paths are retained in `php-settings.json`. These are the supported full-editor test settings. The retained capacity regressions also check request completeness and safe failure conditions; a collapsed disclosure does not reduce submitted inputs. Do not interpret the fixture settings as validation of a differently configured production server.
+
+For only the Functional stage, the lower-level entry point remains available:
+
+```sh
 bash tests/run-functional.sh
 ```
 
-Optional settings are `ACTOOLS_TEST_PHP` (PHP executable), `ACTOOLS_TEST_PORT` (default 8096) and `ACTOOLS_TEST_WEBROOT` (default the project's `web` directory). The module must be installed at that webroot's `modules/custom/actools_lesson`. Run the script in the same environment/network namespace as the local server. It exits on a failing class and stops only the server it launched; inspect retained results before retrying.
+It discovers new Functional files automatically, runs them serially and stops only its own server process. There are no automatic retries that could hide an intermittent failure.
 
-The runner uses the core router from the actual webroot working directory and creates its output directory before PHPUnit starts. This matches the final class-isolated verification approach recorded in [VALIDATION.md](../VALIDATION.md). Do not point it at a production codebase or database. It does not certify the production database, theme or BOA stack.
+## Browser fixtures
 
-The suite covers compatible existing field configuration, idempotent installation, unmanaged resource separation, rejected conflicting storage, outline ownership and ordering, the database uniqueness guard after stale validation, field and node access cache metadata, revision isolation, and parity of guided, Read all and print routes. It also repeats canonical route requests across step and view changes to exercise warm caches. The progress and structured authoring test classes cover their respective domains.
+`tests/browser/run.mjs` starts a loopback-only static fixture server on an available port and runs `regressions.mjs`. It serves actual module assets and the installed Drupal `drupal.js`/`once` implementations. Browser fixtures do not access the base Drupal site or write its database.
 
-`LessonEditorialWorkflowTest` submits the actual managed lesson node form: initial draft, published content retained while a pending draft changes, reopening the latest draft, reviewed publication, stale browser forms, forged revision snapshots, native publish permission and private preview access. `EditorialSnapshotTest` also detects same-revision API changes and cross-account token reuse. `EditorialModerationCompatibilityTest` configures a real core Content Moderation workflow and verifies the module defers to it.
+Retained cases cover explicit/OS appearance in print, matching behavior root contexts and exactly-once enhancement, successful local MathJax rendering, rejected and missing/blocked entry paths with preserved TeX/fallback notices, distinct figure link names, and the scoped theme-header adapter. These are focused failure regressions. Full installed-theme, BigPipe, production CSP and target-stack acceptance remain separate checks.
 
-The `actools_lesson_test` module is test support only. Do not enable it on a normal site.
+The package lock makes browser dependencies repeatable. A direct browser-only invocation is also supported:
+
+```sh
+export DRUPAL_ROOT="$ACTOOLS_TEST_PROJECT/web"
+node tests/browser/run.mjs
+```
+
+## Configuration and retained evidence
+
+| Variable | Purpose |
+| --- | --- |
+| `ACTOOLS_TEST_PROJECT` | Required disposable Drupal Composer project. |
+| `ACTOOLS_TEST_WEBROOT` | Optional webroot; defaults to the project's `web`. |
+| `ACTOOLS_TEST_PHP` | Optional PHP executable; defaults to `php`. |
+| `ACTOOLS_TEST_COMPOSER` | Bootstrap Composer executable; defaults to `composer`. |
+| `ACTOOLS_TEST_NODE` | Optional Node executable for the common runner. |
+| `ACTOOLS_TEST_PORT` | Functional server port; defaults to 8096. |
+| `ACTOOLS_TEST_RESULTS` | Optional empty results directory; otherwise a new directory under `/tmp`. |
+| `ACTOOLS_TEST_BROWSER_OUTPUT` | Results directory for direct browser invocation. |
+| `ACTOOLS_TEST_CHROMIUM` | Optional local Chromium executable; normally Playwright selects its pinned browser. |
+| `ACTOOLS_TEST_CHROMIUM_ARGS` | Optional JSON string array of launch arguments for a special local runtime. |
+| `ACTOOLS_TEST_PLAYWRIGHT_MODULE` | Optional absolute module import for an already provisioned local Playwright installation. Normal npm/CI runs leave this unset. |
+
+The scripts print the retained results path. Native stages write JUnit and logs; the common runner also retains the PHP version and resolved Drupal Composer lock. Browser execution writes `summary.json` with pass/fail status, the actual browser version, checks or the failure stack. The hosted workflow uploads reports for seven days, including on failure; it excludes test databases from the artifact patterns.
+
+Review the first failure and its request/site evidence before rerunning. Earlier development encountered isolated-site dispatch failures in a long-lived combined server; the fresh-server-per-file approach retains that boundary explicitly. Report a failed attempt honestly even when a later run passes. See [VALIDATION.md](../VALIDATION.md) for release-specific results and limits.
+
+The native suites use Drupal storage, access handlers, node revisions, filtered text, managed files, real native forms and account-scoped progress. The `actools_lesson_test` module is test support only and belongs only in disposable test sites.

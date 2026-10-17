@@ -10,3 +10,5 @@
 /*.sqlite-wal
 /test-output/
 /browser-output/
+/tests/browser/node_modules/
+/tests/browser/test-results/

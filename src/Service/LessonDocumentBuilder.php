@@ -203,10 +203,6 @@ final class LessonDocumentBuilder {
       '#all_url' => $all_url,
       '#guided_url' => $guided_url,
       '#print_url' => $print_url,
-      '#mode_links' => [
-        ['#type' => 'link', '#title' => 'Guided', '#url' => Url::fromUserInput($guided_url)],
-        ['#type' => 'link', '#title' => 'Read all', '#url' => Url::fromUserInput($all_url)],
-      ],
       '#steps' => $step_links,
       '#current_step_title' => $current ? ['#plain_text' => $current['title']] : [],
       '#current_step_number' => $current ? $current_index + 1 : 0,

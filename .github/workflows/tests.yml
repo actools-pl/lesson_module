@@ -1,0 +1,68 @@
+name: Drupal and browser regressions
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Drupal 11.4.10 / PHP ${{ matrix.php }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4']
+    env:
+      ACTOOLS_TEST_DRUPAL_VERSION: '11.4.10'
+    steps:
+      - name: Check out source without retained credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Set disposable paths
+        run: |
+          printf 'ACTOOLS_TEST_PROJECT=%s\n' "$RUNNER_TEMP/actools-drupal" >> "$GITHUB_ENV"
+          printf 'ACTOOLS_TEST_RESULTS=%s\n' "$RUNNER_TEMP/actools-results" >> "$GITHUB_ENV"
+      - name: Set up PHP
+        uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: ctype, curl, dom, fileinfo, gd, iconv, intl, mbstring, pdo_sqlite, sqlite3, tokenizer, xml, xmlreader, xmlwriter, zip
+          ini-values: memory_limit=768M, max_input_vars=4096, post_max_size=128M, upload_max_filesize=20M
+          coverage: none
+          tools: composer:v2
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: tests/browser/package-lock.json
+      - name: Create a disposable matching Drupal project
+        run: bash tests/bootstrap.sh
+      - name: Install pinned browser tooling
+        working-directory: tests/browser
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Run native Drupal and browser regressions
+        run: bash tests/run-ci.sh
+      - name: Retain test reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: test-results-php-${{ matrix.php }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/actools-results/**/*.xml
+            ${{ runner.temp }}/actools-results/**/*.log
+            ${{ runner.temp }}/actools-results/**/summary.json
+            ${{ runner.temp }}/actools-results/**/php-settings.json
+            ${{ runner.temp }}/actools-results/runtime.txt
+            ${{ runner.temp }}/actools-results/drupal-composer.lock

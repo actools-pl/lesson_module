@@ -1,0 +1,3 @@
+These isolated browser fixtures use the candidate module assets, Drupal's actual `drupal.js` and `once.min.js`, and representative native reader/progress markup. They exercise behavior insertion/lifecycle, print and math failure contracts without a Drupal HTTP database or authenticated session.
+
+`main-sticky-header.css` is the inspected `actools_bs5` main header stylesheet at `1f711daa630a2243b8e1a68edf798a367382f17b`; it is retained only for the optional adapter regression. This is a focused DOM/CSS fixture, not a full installed-theme test. The paired PHP presentation Kernel test verifies the figure markup which the browser checks for accessible names.

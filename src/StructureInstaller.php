@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\actools_lesson;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\Core\Form\OptGroup;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\filter\Entity\FilterFormat;
@@ -27,8 +28,11 @@ final class StructureInstaller {
         if ($storage->getCardinality() !== ($spec['cardinality'] ?? 1)) {
           throw new \RuntimeException(sprintf('Actools Lessons requires %s to have cardinality %d. Review the existing storage before installing.', $name, $spec['cardinality'] ?? 1));
         }
-        if ($name === 'field_actools_kind' && !array_key_exists('lesson', $storage->getSetting('allowed_values') ?? [])) {
-          throw new \RuntimeException('The existing Resource kind field must permit the value lesson. Add it through configuration before installing Actools Lessons.');
+        if ($name === 'field_actools_kind') {
+          self::assertAllowedChoices($storage, ['lesson']);
+        }
+        if ($name === 'field_actools_path') {
+          self::assertAllowedChoices($storage, ['core', 'extension']);
         }
       }
       foreach ($spec['bundles'] as $bundle) {
@@ -118,6 +122,35 @@ final class StructureInstaller {
           FieldConfig::create(['field_name' => $name, 'entity_type' => 'node', 'bundle' => $bundle, 'label' => $bundle === 'actools_topic' ? 'Chapter taxonomy' : 'Concepts', 'settings' => ['handler' => 'default:taxonomy_term', 'handler_settings' => ['target_bundles' => ['edu_topics' => 'edu_topics'], 'auto_create' => FALSE]]])->save();
           \Drupal::service('entity_display.repository')->getFormDisplay('node', $bundle)->setComponent($name, ['type' => 'entity_reference_autocomplete', 'weight' => 40])->save();
         }
+      }
+    }
+  }
+
+  /** Resolve choices through the same API used by native list field validation. */
+  private static function assertAllowedChoices(FieldStorageConfig $storage, array $required): void {
+    foreach ($required as $choice) {
+      // Callbacks may legitimately use the resource bundle or current value.
+      // This unsaved entity does not create content or configuration.
+      $context = \Drupal::entityTypeManager()->getStorage('node')->create([
+        'type' => 'actools_resource', 'status' => 0,
+      ]);
+      foreach (['field_actools_kind' => 'lesson', 'field_actools_lesson_managed' => 1, $storage->getName() => $choice] as $name => $value) {
+        if ($context->hasField($name)) {
+          $context->set($name, $value);
+        }
+      }
+      // The native helper statically caches by field and entity-presence, not
+      // entity identity. Resolve each prospective value afresh during preflight.
+      drupal_static_reset('options_allowed_values');
+      try {
+        $values = options_allowed_values($storage, $context);
+      }
+      catch (\Throwable $exception) {
+        throw new \RuntimeException(sprintf('Actools Lessons cannot resolve the allowed choices for %s. Review its allowed-values callback before installing. No existing configuration was replaced.', $storage->getName()), 0, $exception);
+      }
+      // Native list fields also accept grouped options returned by callbacks.
+      if (!is_array($values) || !array_key_exists($choice, OptGroup::flattenOptions($values))) {
+        throw new \RuntimeException(sprintf('Actools Lessons requires %s to permit %s for managed resources. Add the missing choice or correct its allowed-values callback before installing. No existing configuration was replaced.', $storage->getName(), implode(' and ', $required)));
       }
     }
   }

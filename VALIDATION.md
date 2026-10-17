@@ -1,19 +1,23 @@
-# Validation — Actools Lessons 1.0.2
+# Validation — Actools Lessons 1.0.3
 
-The 1.0.2 automated suites and focused theme-adapter fixture were executed on 17 October 2026. The full installed-Drupal Chromium workflows recorded below establish the 1.0.1 baseline; the new 1.0.2 adapter has separate, explicitly scoped fixture evidence.
+The frozen 1.0.3 source passed the shipped `tests/run-ci.sh all` entry point on 17 October 2026, in a newly bootstrapped disposable Drupal project. The full installed-Drupal Chromium workflows below establish the earlier 1.0.1 baseline; 1.0.2 theme-adapter evidence and the new retained 1.0.3 failure regressions are scoped separately.
 
 ## Final automated results
 
 | Suite | Tests | Assertions | Result |
 | --- | ---: | ---: | --- |
-| Unit | 7 | 50 | Passed |
-| Drupal Kernel | 29 | 344 | Passed |
-| Drupal Functional, native forms without JavaScript | 24 | 373 | Passed |
-| **Total** | **60** | **767** | **Passed** |
+| Unit | 8 | 53 | Passed |
+| Drupal Kernel | 48 | 718 | Passed |
+| Drupal Functional, native forms and real AJAX requests | 30 | 501 | Passed |
+| **Total** | **86** | **1272** | **Passed** |
 
-The final 1.0.2 Kernel and Functional tests used separate local SQLite databases. The shipped `tests/run-functional.sh` was executed against the actual 1.0.2 source: its four Functional classes ran serially, each with a fresh HTTP server and its own database, while the base site's settings remained fixed. JUnit aggregate counts matched the individual test cases. All 60 tests passed, with zero failures, errors or skipped cases.
+All native tests passed with zero failures, errors or skipped cases. JUnit aggregate counts matched the individual test cases. The common runner completed Unit, Kernel, every discovered Functional file and the retained browser suite without retries. Each Functional file used a fresh HTTP server and separate SQLite database; the disposable base site's settings stayed fixed.
 
-During the earlier 1.0.1 review, combined Functional attempts were rejected because occasional requests reached the primary local demo site instead of the isolated test fixture. Response HTML confirmed the wrong site; the precise cookie-dispatch cause was not established. The final 1.0.2 fresh-server class runs passed with the assertions unchanged. This record does not claim a clean single-process directory run. PHP source lint, module JavaScript syntax checks and Composer metadata validation also passed for the 1.0.2 repository source.
+The tests used `max_input_vars=4096`, `post_max_size=128M`, `upload_max_filesize=20M` and PHP's default 20-upload count. Parser warnings were logged with error display disabled so the deliberate input-truncation test could reach Drupal's intended rejection response. A representative 120-practice-component native form used 1,486 input slots including the 128-input reserve. This does not certify full-editor Chromium performance or an arbitrary production form with additional fields.
+
+Earlier focused development attempts encountered SQLite schema errors during test setup; those runs are not counted as passes. The first complete entry-point attempt stopped when an isolated PHPUnit child received the default 1,000-input limit despite parent/server flags. The runner now exports a temporary PHP scan configuration to its children, preserving existing scan paths. The next full run caught missing Form API metadata in the new capacity diagnostic during an existing validation-error recovery test; that production defect was corrected without weakening the test. The final frozen common-entry-point run passed in the separate disposable project. Earlier 1.0.1 combined-server dispatch problems are historical evidence, not hidden retries in this runner.
+
+First-party PHP lint, JavaScript/MJS syntax, shell syntax, workflow actionlint, Composer metadata validation, Twig syntax and local Markdown file targets also passed. The GitHub Actions workflow defines PHP 8.3/8.4 jobs; hosted execution had not yet occurred when this release record was prepared. Check Actions for the exact published commit before treating PHP 8.4 as exercised.
 
 ## Verified environment
 
@@ -24,7 +28,7 @@ During the earlier 1.0.1 review, combined Functional attempts were rejected beca
 | Database | SQLite |
 | PHPUnit | 11.5.57 |
 | Drush | 13.8.0 |
-| Browser used for baseline actual UI checks | Chromium 153.0.8010.0 through Playwright |
+| Browser used for baseline UI and new regressions | Chromium 153.0.8010.0 through Playwright |
 | Local mathematical renderer and font package | MathJax 4.1.3 / New Computer Modern 4.1.3 |
 
 For the 1.0.1 baseline, the main module and optional demo were enabled on a fresh minimal-profile installation. The supplied CKEditor 5 configuration validated with zero typed-config violations. Cold and warm checks of eight demo/canonical/reader routes produced 16 HTTP 200 responses. A read-only database integrity check after the full author workflow returned `ok`.
@@ -43,7 +47,21 @@ For the 1.0.1 baseline, the main module and optional demo were enabled on a fres
 - One accessible progress summary and native meter, accurate optional-only counts, one guided primary action, explicit Read-all step selection and safe previous-lesson navigation from continuous reading.
 - Optional theme-adapter assets gated to `actools_bs5` and its subthemes, excluded from unrelated active themes including Claro, with theme cache variation and existing cache metadata preserved.
 
-See `tests/README.md` for execution instructions and the test source for exact assertions.
+- Whole-form input/upload capacity, native 120-component first/middle/last saves, real PHP input-parser truncation, discarded oversized POST, omitted scalar controls, stale AJAX inventories, managed-file removal, stored-file upload counting and direct numeric step/component ordering.
+- Empty unmanaged Notes/Assignment saves, preservation of existing saved steps, removed/reintroduced step-version high-water marks, shared publication/readiness completeness, callback/group-aware path preflight, absolute generated URLs and individual figure-link names.
+
+See [tests/README.md](tests/README.md) for the shared entry point, disposable bootstrap and exact test source.
+
+## Retained browser regressions — 1.0.3
+
+The shipped common entry point also ran the retained Playwright suite with actual Drupal `drupal.js`/`once`, module assets and the bundled local MathJax renderer. It passed with zero browser page errors:
+
+- Matching root reader/progress/mathematics contexts, late insertion, replacement progress forms and exactly-once initialization/print handling.
+- All six OS/explicit appearance combinations in print, with complete light ink/background palettes and retained screen appearance.
+- Actual local mathematics success, rejected typesetting/startup, missing or blocked entry scripts before window load, and late attachment after load. One fallback notice appears and raw TeX remains available.
+- Distinct figure-link names and the theme adapter's handoff to native header signals.
+
+These are retained focused fixtures. The complete installed-Drupal UI journey below remains explicitly the earlier 1.0.1 baseline. The full production theme, real BigPipe runtime, CSP and BOA stack require staging acceptance.
 
 ## Installed-Drupal browser baseline — 1.0.1
 

@@ -10,7 +10,7 @@ use Drupal\node\NodeInterface;
 
 /** Canonical membership is the chapter reference field; the index guards races. */
 final class MembershipManager {
-  public function __construct(private readonly EntityTypeManagerInterface $entityTypeManager, private readonly Connection $database) {}
+  public function __construct(private readonly EntityTypeManagerInterface $entityTypeManager, private readonly Connection $database, private readonly TeachingContentCompleteness $completeness) {}
 
   public function owner(int $lessonId): ?NodeInterface {
     $ids = $this->entityTypeManager->getStorage('node')->getQuery()->accessCheck(FALSE)
@@ -65,9 +65,8 @@ final class MembershipManager {
         $ids = [];
         foreach ($node->get('field_actools_lesson_steps') as $step) {
           $value = $step->getValue();
-          $components = json_decode((string) ($value['components'] ?? '[]'), TRUE);
-          if (!is_array($components) || !$components) {
-            $errors[] = 'Add at least one teaching component to each step before publishing.';
+          if (!$this->completeness->isCompleteStep($value)) {
+            $errors[] = 'Complete every teaching component before publishing: add its explanation or question prompt, equation source, or valid figure with alternative text.';
           }
           if (empty($value['reviewed'])) {
             $errors[] = 'Review every learning step before publishing this lesson.';

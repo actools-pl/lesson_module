@@ -112,7 +112,8 @@ final class ComponentRenderer {
         '#type' => 'link',
         '#title' => $image_build,
         '#url' => $this->fileUrlGenerator->generate($file->getFileUri()),
-        '#attributes' => ['class' => ['actools-lesson-original'], 'aria-label' => 'Open full-resolution diagram'],
+        // The linked image's meaningful alt text names this particular figure.
+        '#attributes' => ['class' => ['actools-lesson-original']],
       ];
       $build['#caption'] = $this->plain($component['caption'] ?? '');
       $build['#description'] = $this->plain($component['description'] ?? '');

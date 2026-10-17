@@ -1,14 +1,14 @@
-# Operations and updates — Actools Lessons 1.0.2
+# Operations and updates — Actools Lessons 1.0.3
 
 The Drupal machine name is `actools_lesson`; `lesson_module` is the GitHub repository name. Deploy the repository root as `modules/custom/actools_lesson` inside the actual Drupal document root. See [INSTALLATION.md](INSTALLATION.md) for explicit Drush root/site examples and role setup.
 
-## Update an installed 1.0.0 or 1.0.1 site
+## Update an installed 1.0.0, 1.0.1 or 1.0.2 site
 
-Version 1.0.2 requires a code replacement and cache rebuild. It introduces no module database schema migration. Preserve the site's database, configuration, uploaded/public files, native revisions and user data. **Do not uninstall/reinstall the module, remove its fields, or reimport the demonstration to perform this update.**
+Version 1.0.3 requires a code replacement and cache rebuild. It introduces no module database schema migration. Preserve the site's database, configuration, uploaded/public files, native revisions and user data. **Do not uninstall/reinstall the module, remove its fields, or reimport the demonstration to perform this update.**
 
 1. Record the current release/commit and local overrides. Back up the database, active/exported configuration, uploaded files and current code using the site's normal recovery procedure. Verify that the backup can be restored. Aegir site Backup excludes shared platform code: retain both the site archive and a separate off-server platform/custom-code backup with its Composer manifest, lockfile and reviewed module commit.
 2. On BOA, follow the [Actools installation procedure](https://github.com/actools-pl/actools_bs5/blob/main/INSTALL.md) and [BOA platform guide](https://github.com/actools-pl/boa/blob/hetzner-drupal11/hetzner/ACTOOLS_BS5.md). Build a new unregistered platform as `o1.ftp`, finish dependency/code work before registration, register the actual `web` document root and wait for Verify. Rehearse migration on a clone. Preserve the reviewed `composer.lock`; do not run Composer as root, update shared dependencies blindly, or pull `main` inside a live platform. Retain Claro for administration. Other managed platforms should use their equivalent supported release process.
-3. Test the reviewed 1.0.2 source on a staging copy with the actual site PHP, database, theme, access modules and moderation configuration.
+3. Test the reviewed 1.0.3 source on a staging copy with the actual site PHP, database, theme, access modules and moderation configuration.
 4. Deploy the complete module directory through the established release process. Retain normal filesystem ownership; the PHP service should not need write access to module code.
 5. Rebuild caches in the intended site's context. In a Composer project with Drush already installed, for example:
 
@@ -20,11 +20,11 @@ Version 1.0.2 requires a code replacement and cache rebuild. It introduces no mo
    Verify `status` before the cache rebuild. Use the platform's approved Drush alias/executable instead where required. A shell inside the Drupal document root does not imply that `vendor/bin/drush` lives there.
 6. Reload open lesson editor forms. Check public content and the latest private drafts before allowing normal editorial work to resume.
 
-The cache rebuild is needed for changed services, routes, templates and aggregated 1.0.2 browser assets. Do not edit generated aggregate files. Follow any additional update/configuration steps required by the site's deployment pipeline; this release itself has no `hook_update_N()` migration to execute.
+The cache rebuild is needed for changed services, routes, templates and versioned 1.0.3 browser assets, including the unaggregated mathematics integration. Do not edit generated aggregate files. Follow any additional update/configuration steps required by the site's deployment pipeline; this release itself has no `hook_update_N()` migration to execute.
 
 ## Staging acceptance on the actual host
 
-Final **1.0.2** native automated validation passed **60 tests / 767 assertions** on **Drupal 11.4.10, PHP 8.3.6 and SQLite**: Unit 7/50, Kernel 29/344 and Functional 24/373. The full Chromium workflows on 1.0.1 covered reading, authoring, private draft preservation, mathematics, phone layouts, dark appearance, no-JavaScript fallbacks and print. Consult the validation record separately for the status of the new focused 1.0.2 theme-adapter fixture; neither the earlier workflows nor that fixture certify a complete production theme/site. PHP 8.4, Percona, the production BOA/Nginx stack and the production-installed `actools_bs5` integration were **not** exercised. Treat these as target-platform checks, not verified compatibility claims.
+Final **1.0.3** native validation passed **86 tests / 1272 assertions** on **Drupal 11.4.10, PHP 8.3.6 and SQLite**, followed by the retained browser regressions. Unit 8/53, Kernel 48/718 and Functional 30/501 ran through the shared disposable test entry point. The full installed-Drupal UI baseline remains 1.0.1; the focused theme and failure fixtures have their own scope. PHP 8.4, Percona, BOA/Nginx, the installed production theme and CSP remain target-platform acceptance checks. See [VALIDATION.md](../VALIDATION.md) for exact evidence and hosted-CI status.
 
 Use a disposable lesson and chapter for the following checks:
 
