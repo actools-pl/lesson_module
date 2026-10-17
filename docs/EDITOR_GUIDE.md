@@ -1,4 +1,4 @@
-# Editor guide — Actools Lessons 1.0.3
+# Editor guide — Actools Lessons 1.1.0
 
 Open **Content → Actools Lessons** (`/admin/content/actools-lessons`). The workbench shows chapter assignment, step review readiness and whether a lesson is **Draft**, **Published** or **Published with draft**. Available actions depend on your native Drupal content, revision and text-format permissions. The workbench permission alone does not grant editing or publishing.
 
@@ -59,3 +59,7 @@ Learners explicitly mark steps read or use the guided read-and-continue action. 
 Native Drupal revisions retain historical content and identities. Accounts with appropriate revision access can inspect an exact historical revision. A native restore creates a fresh teaching-content version where needed; it does not delete history. Restoring restricted-format text requires permission to use that format. Coordinate a restore with the publisher when a pending draft or moderation workflow exists.
 
 Legacy Topic/Resource content is not automatically converted. The managed-reader flags opt content into the lesson/chapter experience; the old resource-card field is not the chapter's lesson order. Optional taxonomy references select existing `edu_topics` terms, while **Stable chapter code** is separate metadata. See [CONTENT_AND_EXTENSION.md](CONTENT_AND_EXTENSION.md).
+
+## Shared presentation
+
+When the optional Layout Builder add-on is enabled, site builders manage approved shared page layouts through Manage display. Continue authoring teaching content here; private previews and Print use the existing lesson document. Shared layout changes are site configuration and take effect independently of a lesson draft. See [LAYOUT_BUILDER.md](LAYOUT_BUILDER.md).

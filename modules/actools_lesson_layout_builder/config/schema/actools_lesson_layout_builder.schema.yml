@@ -1,0 +1,12 @@
+core.entity_view_display.*.*.*.third_party.actools_lesson_layout_builder:
+  type: mapping
+  label: 'Actools Lessons shared layout'
+  mapping:
+    enabled:
+      type: boolean
+      label: 'Use the shared layout for managed chapters and lessons'
+
+block.settings.actools_lesson_reader:
+  type: block_settings
+  label: 'Complete Actools chapter or lesson reader'
+

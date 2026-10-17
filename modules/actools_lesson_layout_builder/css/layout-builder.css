@@ -1,0 +1,42 @@
+/** Contain the complete reader within shared Layout Builder regions. */
+.actools-lesson-shared-layout .layout__region,
+.actools-lesson-shared-layout .actools-lesson-layout-document {
+  min-inline-size: 0;
+}
+.actools-lesson-shared-layout .actools-lesson-layout-document .actools-lesson,
+.actools-lesson-shared-layout .actools-lesson-layout-document .actools-chapter {
+  box-sizing: border-box;
+}
+
+/* A wide viewport can still contain a narrow layout region. Keep the existing
+ * reader, disclosures and navigation in one reading column in that region.
+ * A full-width reader keeps its normal chapter sidebar and sticky contract.
+ */
+@media screen {
+  .actools-lesson-shared-layout .actools-lesson-layout-document {
+    container-name: actools-lesson-document;
+    container-type: inline-size;
+  }
+  @container actools-lesson-document (max-width: 64rem) {
+    .actools-lesson--has-chapter .actools-lesson__layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .actools-lesson__chapter {
+      border-inline-end: 0;
+      border-block-end: 1px solid var(--al-border);
+      padding: 1rem;
+    }
+    .actools-lesson__main {
+      padding: clamp(1rem, 3cqi, 2.5rem);
+    }
+    .actools-lesson__orientation-grid,
+    .actools-chapter__orientation {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .actools-chapter-nav[data-actools-sticky-ready] {
+      position: static;
+      max-block-size: none;
+      overflow: visible;
+    }
+  }
+}

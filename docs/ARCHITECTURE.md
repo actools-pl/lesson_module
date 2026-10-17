@@ -71,3 +71,11 @@ A GET reads progress without writing. The native form supplies POST, CSRF and no
 ## Deliberate limits
 
 This release targets one language per authored lesson. It does not enable field translation or test translated chapter routes. It uses ordinary raster diagrams and TeX, not an equation editor with OMML export. Tables use CKEditor 5 table controls and Drupal text filters; authors need no HTML editing. Private storage may be configured by a site, but the included author widget uploads figures to public storage. There is no automatic manuscript importer, assessment adapter implementation, discussion system, learning standard export or content moderation setup.
+
+## Optional shared Layout Builder integration — 1.1.0
+
+The optional `actools_lesson_layout_builder` submodule adds explicit per-display activation for shared default layouts on public canonical managed pages. One complete reader block delegates to the existing document/chapter builders; teaching content remains in the same custom field and native node revisions. Paragraphs is deferred.
+
+A render-only section-storage guard prevents native stored overrides or unvalidated sections from executing before managed rendering. The adapter validates saved shared defaults, clones their sections and omits duplicate field/title components only from managed output. Unmanaged resources retain native field output and applicable overrides. Unsupported or stale composition falls back to the original reader without rewriting configuration.
+
+Managed override routes and direct override forms are denied so they cannot act as a second lesson-save workflow. Private preview, history and dedicated Study/Print retain their original exact-node/default-revision boundaries. Shared layout configuration and supplementary content have their own lifecycle outside individual lesson revisions. See [LAYOUT_BUILDER.md](LAYOUT_BUILDER.md) for setup, supported blocks, rollback and acceptance.

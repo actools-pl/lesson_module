@@ -1,0 +1,11 @@
+name: Actools Lessons — shared layouts
+type: module
+version: '1.1.0'
+description: 'Optional shared Layout Builder presentation around the complete chapter and lesson reader. Individual lesson layout overrides are unsupported.'
+package: Aarin Content Tools
+core_version_requirement: ^11.3
+php: 8.3
+dependencies:
+  - actools_lesson:actools_lesson
+  - drupal:layout_builder
+

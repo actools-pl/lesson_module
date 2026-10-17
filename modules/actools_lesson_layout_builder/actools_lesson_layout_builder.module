@@ -1,0 +1,125 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\actools_lesson_layout_builder\Service\SharedLayoutIntegration;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Entity\EntityFormInterface;
+use Drupal\Core\Entity\EntityStorageException;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\layout_builder\DefaultsSectionStorageInterface;
+use Drupal\node\NodeInterface;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+
+/** Implements hook_form_alter(). */
+function actools_lesson_layout_builder_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  if ($form_id === 'layout_builder_disable_form') {
+    $form['#validate'][] = 'actools_lesson_layout_builder_disable_validate';
+    if (actools_lesson_layout_builder_disable_display($form_state)) {
+      $form['actools_shared_layout_disable_notice'] = ['#type' => 'item', '#weight' => -10,
+        '#description' => t('First return to Manage display, uncheck Use the saved shared layout for managed chapters and lessons, and save. This resumes the original reader without removing any layouts or stored overrides. Disabling core Layout Builder is a separate operation that removes its shared customizations.'),
+      ];
+    }
+    return;
+  }
+  $object = $form_state->getFormObject();
+  if (!$object instanceof EntityFormInterface) {
+    return;
+  }
+  $entity = $object->getEntity();
+  // Defense in depth for direct form builds. Core override routes also have an
+  // access check, before their tempstore/editor or save operations execute.
+  if ($entity instanceof NodeInterface && $object->getOperation() === 'layout_builder'
+    && !\Drupal::service('actools_lesson_layout_builder.override_access')->nodeAccess($entity)->isAllowed()) {
+    throw new AccessDeniedHttpException('Managed chapters and lessons use shared layouts. Edit teaching content with the lesson editor.');
+  }
+  if (!$entity instanceof EntityViewDisplayInterface) {
+    return;
+  }
+  /** @var \Drupal\actools_lesson_layout_builder\Service\SharedLayoutIntegration $integration */
+  $integration = \Drupal::service('actools_lesson_layout_builder.integration');
+  if (!$integration->supportsDisplay($entity)) {
+    return;
+  }
+  // The Manage display form has core's layout options; the default-layout
+  // editor has sections instead. Both use the same save validation below.
+  if (isset($form['layout']['enabled'])) {
+    $form['actools_lesson_layout_builder'] = [
+      '#type' => 'details', '#title' => t('Actools shared reader layout'), '#open' => TRUE, '#tree' => TRUE,
+      '#description' => t('Optional presentation for managed chapters and lessons only. First enable Layout Builder, add exactly one Complete Actools chapter or lesson reader block in Manage layout, then enable this option. Keep native field blocks for ordinary content sharing this display; managed readers hide those duplicates. Supplementary content blocks and menus may surround the reader. Teaching content, Study and print stay in the lesson editor. Individual managed layout overrides are unavailable; existing stored overrides are preserved.'),
+      'enabled' => [
+        '#type' => 'checkbox', '#title' => t('Use the saved shared layout for managed chapters and lessons'),
+        '#default_value' => $integration->isEnabled($entity),
+      ],
+    ];
+    $form['#entity_builders']['actools_lesson_layout_builder'] = 'actools_lesson_layout_builder_display_build';
+  }
+  else {
+    $form['actools_shared_layout_help'] = ['#type' => 'item', '#weight' => -850,
+      '#description' => t('The Complete Actools reader is a placeholder here. Shared managed layouts require exactly one reader with its title hidden and content context unchanged. Native field/title blocks remain for ordinary content but are hidden on managed chapters and lessons. Use supplementary content blocks or menus around the reader. Save changes to this shared layout directly; they are not lesson content drafts.'),
+    ];
+  }
+  $form['#validate'][] = 'actools_lesson_layout_builder_display_validate';
+}
+
+/** The active saved default that needs explicit adapter opt-out first. */
+function actools_lesson_layout_builder_disable_display(FormStateInterface $form_state): ?EntityViewDisplayInterface {
+  $storage = \Drupal::routeMatch()->getParameter('section_storage');
+  if (!$storage instanceof DefaultsSectionStorageInterface) {
+    foreach ($form_state->getBuildInfo()['args'] ?? [] as $argument) {
+      if ($argument instanceof DefaultsSectionStorageInterface) {
+        $storage = $argument;
+        break;
+      }
+    }
+  }
+  if (!$storage instanceof DefaultsSectionStorageInterface) {
+    return NULL;
+  }
+  $display = $storage->getContextValue('display');
+  if (!$display instanceof EntityViewDisplayInterface) {
+    return NULL;
+  }
+  $saved = \Drupal::entityTypeManager()->getStorage('entity_view_display')->loadUnchanged($display->id());
+  return $saved instanceof EntityViewDisplayInterface
+    && \Drupal::service('actools_lesson_layout_builder.integration')->isEnabled($saved) ? $saved : NULL;
+}
+
+/** Prevent a native core-disable confirmation from failing during config save. */
+function actools_lesson_layout_builder_disable_validate(array &$form, FormStateInterface $form_state): void {
+  if (actools_lesson_layout_builder_disable_display($form_state)) {
+    $form_state->setErrorByName('actools_shared_layout_disable_notice', t('Turn off Actools shared presentation in Manage display and save before disabling core Layout Builder. Your shared layout and stored overrides have been preserved.'));
+  }
+}
+
+/** Copies only the explicit opt-in, leaving all core layout options untouched. */
+function actools_lesson_layout_builder_display_build(string $entity_type, EntityViewDisplayInterface $display, array &$form, FormStateInterface $form_state): void {
+  if ($form_state->getValue(['actools_lesson_layout_builder', 'enabled'], FALSE)) {
+    $display->setThirdPartySetting(SharedLayoutIntegration::PROVIDER, 'enabled', TRUE);
+  }
+  else {
+    $display->unsetThirdPartySetting(SharedLayoutIntegration::PROVIDER, 'enabled');
+  }
+}
+
+/** Gives native Save a recoverable form error before any config write. */
+function actools_lesson_layout_builder_display_validate(array &$form, FormStateInterface $form_state): void {
+  $object = $form_state->getFormObject();
+  if (!$object instanceof EntityFormInterface) {
+    return;
+  }
+  $display = $object->buildEntity($form, $form_state);
+  if ($display instanceof EntityViewDisplayInterface) {
+    foreach (\Drupal::service('actools_lesson_layout_builder.integration')->validationErrors($display) as $error) {
+      $form_state->setErrorByName('actools_lesson_layout_builder', $error);
+    }
+  }
+}
+
+/** Implements hook_entity_view_display_presave(). */
+function actools_lesson_layout_builder_entity_view_display_presave(EntityViewDisplayInterface $display): void {
+  $errors = \Drupal::service('actools_lesson_layout_builder.integration')->validationErrors($display);
+  if ($errors) {
+    throw new EntityStorageException(implode(' ', $errors));
+  }
+}

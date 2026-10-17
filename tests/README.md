@@ -4,7 +4,7 @@
 
 The GitHub workflow in `.github/workflows/tests.yml` uses the same scripts on Ubuntu 24.04 with PHP 8.3 and 8.4. It pins Drupal and matching `drupal/core-dev` to 11.4.10, Drush to 13.8.0 and Playwright to 1.62.1. Top-level Drupal versions are pinned; Composer resolves their dependencies into a lock file retained with each run. This tests one Drupal patch version, not every version permitted by the module's Composer constraint.
 
-At release preparation, this new hosted workflow had not run. Local results do not establish a GitHub-hosted PHP 8.4 pass. Check the Actions result for the exact published commit. The workflow runs on pushes, pull requests and manual dispatch, has repository `contents: read` permission, does not retain checkout credentials, and contains no deployment or repository-write step.
+The workflow passed both PHP jobs for 1.0.3. At 1.1.0 release preparation, its new commit had not yet been published or run; local results do not establish a hosted PHP 8.4 pass for the new integration. Check the Actions result for the exact published commit. The workflow runs on pushes, pull requests and manual dispatch, has repository `contents: read` permission, does not retain checkout credentials, and contains no deployment or repository-write step.
 
 ## Create a disposable development project
 
@@ -54,7 +54,7 @@ It discovers new Functional files automatically, runs them serially and stops on
 
 `tests/browser/run.mjs` starts a loopback-only static fixture server on an available port and runs `regressions.mjs`. It serves actual module assets and the installed Drupal `drupal.js`/`once` implementations. Browser fixtures do not access the base Drupal site or write its database.
 
-Retained cases cover explicit/OS appearance in print, matching behavior root contexts and exactly-once enhancement, successful local MathJax rendering, rejected and missing/blocked entry paths with preserved TeX/fallback notices, distinct figure link names, and the scoped theme-header adapter. These are focused failure regressions. Full installed-theme, BigPipe, production CSP and target-stack acceptance remain separate checks.
+Retained cases cover explicit/OS appearance in print, matching behavior root contexts and exactly-once enhancement, successful local MathJax rendering, rejected and missing/blocked entry paths with preserved TeX/fallback notices, distinct figure link names, the scoped theme-header adapter and optional shared Layout Builder containment. The shared-layout fixture starts with actual anonymous canonical HTML captured from the native Functional installation, then applies explicit narrow-region and print stress variants using actual core layout CSS. These are focused failure regressions. Full installed-theme, BigPipe, production CSP and target-stack acceptance remain separate checks.
 
 The package lock makes browser dependencies repeatable. A direct browser-only invocation is also supported:
 
@@ -83,4 +83,4 @@ The scripts print the retained results path. Native stages write JUnit and logs;
 
 Review the first failure and its request/site evidence before rerunning. Earlier development encountered isolated-site dispatch failures in a long-lived combined server; the fresh-server-per-file approach retains that boundary explicitly. Report a failed attempt honestly even when a later run passes. See [VALIDATION.md](../VALIDATION.md) for release-specific results and limits.
 
-The native suites use Drupal storage, access handlers, node revisions, filtered text, managed files, real native forms and account-scoped progress. The `actools_lesson_test` module is test support only and belongs only in disposable test sites.
+The native suites use Drupal storage, access handlers, node revisions, filtered text, managed files, real native forms and account-scoped progress. Layout Builder integration tests enable the optional add-on only inside their isolated fixtures, exercise native default-layout editing/configuration schema, and verify saved layouts, unmanaged content, protected overrides, private revisions and safe fallback. The base suite continues to test the main module without requiring the add-on. The `actools_lesson_test` module is test support only and belongs only in disposable test sites.

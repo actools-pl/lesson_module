@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0 — 2026-10-17
+
+- Add optional shared Layout Builder presentation for published managed chapters and lessons, using one complete reader plus supported supplementary content blocks and menus.
+- Require explicit per-display activation; preserve existing fields, layouts, overrides, lesson storage, historical revisions, files and progress.
+- Keep private previews, historical views and dedicated Study/Print on the existing reader. Protect managed content from an alternate per-node layout-save workflow.
+- Add container-aware optional styling and native/default-layout regression coverage. Paragraphs remains deferred to a later project phase.
+
 ## 1.0.3 — 2026-10-17
 
 Corrective release following the independent review of 1.0.2:

@@ -1,23 +1,23 @@
-# Validation — Actools Lessons 1.0.3
+# Validation — Actools Lessons 1.1.0
 
-The frozen 1.0.3 source passed the shipped `tests/run-ci.sh all` entry point on 17 October 2026, in a newly bootstrapped disposable Drupal project. The full installed-Drupal Chromium workflows below establish the earlier 1.0.1 baseline; 1.0.2 theme-adapter evidence and the new retained 1.0.3 failure regressions are scoped separately.
+The frozen 1.1.0 source passed the shipped `tests/run-ci.sh all` entry point on 17 October 2026, in a newly bootstrapped disposable Drupal project. This includes the new optional shared Layout Builder integration and all prior regressions. The full installed-Drupal Chromium journey remains the earlier 1.0.1 baseline; focused theme, failure and new Layout Builder fixtures are scoped separately below.
 
 ## Final automated results
 
 | Suite | Tests | Assertions | Result |
 | --- | ---: | ---: | --- |
 | Unit | 8 | 53 | Passed |
-| Drupal Kernel | 48 | 718 | Passed |
-| Drupal Functional, native forms and real AJAX requests | 30 | 501 | Passed |
-| **Total** | **86** | **1272** | **Passed** |
+| Drupal Kernel | 59 | 882 | Passed |
+| Drupal Functional, native forms and real AJAX requests | 38 | 678 | Passed |
+| **Total** | **105** | **1613** | **Passed** |
 
-All native tests passed with zero failures, errors or skipped cases. JUnit aggregate counts matched the individual test cases. The common runner completed Unit, Kernel, every discovered Functional file and the retained browser suite without retries. Each Functional file used a fresh HTTP server and separate SQLite database; the disposable base site's settings stayed fixed.
+All native tests passed with zero failures, errors or skipped cases. JUnit aggregate counts matched the individual test cases. The final frozen common runner completed Unit, Kernel, every discovered Functional file and the retained browser suite without retries. Each Functional file used a fresh HTTP server and separate SQLite database; the disposable base site's settings stayed fixed.
 
 The tests used `max_input_vars=4096`, `post_max_size=128M`, `upload_max_filesize=20M` and PHP's default 20-upload count. Parser warnings were logged with error display disabled so the deliberate input-truncation test could reach Drupal's intended rejection response. A representative 120-practice-component native form used 1,486 input slots including the 128-input reserve. This does not certify full-editor Chromium performance or an arbitrary production form with additional fields.
 
-Earlier focused development attempts encountered SQLite schema errors during test setup; those runs are not counted as passes. The first complete entry-point attempt stopped when an isolated PHPUnit child received the default 1,000-input limit despite parent/server flags. The runner now exports a temporary PHP scan configuration to its children, preserving existing scan paths. The next full run caught missing Form API metadata in the new capacity diagnostic during an existing validation-error recovery test; that production defect was corrected without weakening the test. The final frozen common-entry-point run passed in the separate disposable project. Earlier 1.0.1 combined-server dispatch problems are historical evidence, not hidden retries in this runner.
+Focused Layout Builder development caught and corrected an access-service interface declaration, a late-render wrapper and the core hidden-label value type. Failed fixture attempts also used a pruned login menu item, serialized an unavailable layout before importing it, assumed a theme-specific error class and compared unnormalized in-memory/SQL values; corrected fixtures then passed before the final frozen run. These attempts are not counted as final passes. Existing 1.0.3 request-capacity and validation-recovery regressions were rerun in full.
 
-First-party PHP lint, JavaScript/MJS syntax, shell syntax, workflow actionlint, Composer metadata validation, Twig syntax and local Markdown file targets also passed. The GitHub Actions workflow defines PHP 8.3/8.4 jobs; hosted execution had not yet occurred when this release record was prepared. Check Actions for the exact published commit before treating PHP 8.4 as exercised.
+First-party PHP lint, JavaScript/MJS syntax, shell syntax, workflow actionlint, Composer metadata validation, Twig syntax and local Markdown file targets also passed. The GitHub Actions workflow defines PHP 8.3/8.4 jobs. The prior 1.0.3 commit passed both hosted jobs; hosted execution for this new 1.1.0 commit had not occurred when this record was prepared. Check Actions for the exact published commit before treating this release as exercised on PHP 8.4.
 
 ## Verified environment
 
@@ -50,9 +50,13 @@ For the 1.0.1 baseline, the main module and optional demo were enabled on a fres
 - Whole-form input/upload capacity, native 120-component first/middle/last saves, real PHP input-parser truncation, discarded oversized POST, omitted scalar controls, stale AJAX inventories, managed-file removal, stored-file upload counting and direct numeric step/component ordering.
 - Empty unmanaged Notes/Assignment saves, preservation of existing saved steps, removed/reintroduced step-version high-water marks, shared publication/readiness completeness, callback/group-aware path preflight, absolute generated URLs and individual figure-link names.
 
+- Optional Layout Builder installation without display/override rewrites; exact contextual reader rendering, stored shared-default reloads and full-to-default display fallback; preservation of ordinary unmanaged fields and overrides.
+- Native Manage layout editing and display opt-in/opt-out; recoverable invalid-save/core-disable errors; missing, duplicate, wrong-context and malformed imported layouts falling back to the complete original reader.
+- Managed per-content override denial, including an older published unmanaged node with a newer managed draft; shared public versus private draft/historical revision separation; warm field access, query and account progress cache boundaries.
+
 See [tests/README.md](tests/README.md) for the shared entry point, disposable bootstrap and exact test source.
 
-## Retained browser regressions — 1.0.3
+## Retained browser regressions — 1.0.3, rerun for 1.1.0
 
 The shipped common entry point also ran the retained Playwright suite with actual Drupal `drupal.js`/`once`, module assets and the bundled local MathJax renderer. It passed with zero browser page errors:
 
@@ -62,6 +66,17 @@ The shipped common entry point also ran the retained Playwright suite with actua
 - Distinct figure-link names and the theme adapter's handoff to native header signals.
 
 These are retained focused fixtures. The complete installed-Drupal UI journey below remains explicitly the earlier 1.0.1 baseline. The full production theme, real BigPipe runtime, CSP and BOA stack require staging acceptance.
+
+## Layout Builder browser regressions — 1.1.0
+
+The retained browser suite uses an anonymous canonical shared-layout root captured from the real Drupal Functional fixture. Native Functional tests exercise Layout Builder form actions; these focused Chromium fixtures exercise the captured reader presentation with actual module/core assets and explicit layout/content stress variants.
+
+- Actual composed markup and one-, two-, three- and four-column core region variants; one protected document H1 and an owned wrapper independent of theme classes.
+- Full-width sticky navigation clearing a simulated 112-pixel header; narrow regions stacking the internal reader sidebar and making it static; 320-pixel viewport, 200% text and JavaScript-disabled reading.
+- A wide scientific table scrolling locally and a scientific figure retaining its native proportions.
+- Linear print output: captured native output and the explicit stress fixture each produced 3 pages, with zero browser page errors. The native print pages were also rendered and visually inspected during focused development.
+
+The variants deliberately rearrange captured markup and add stress content; they do not certify all third-party layouts/blocks, the JavaScript Layout Builder drag interface or the installed production theme. See [the shared-layout guide](docs/LAYOUT_BUILDER.md) for supported composition and staging checks.
 
 ## Installed-Drupal browser baseline — 1.0.1
 
@@ -91,6 +106,6 @@ The Chromium/Playwright fixture used `actools_bs5` main pinned at `1f711daa630a2
 
 ## Deployment limits
 
-PHP 8.4, Percona, the production BOA/Nginx deployment, the full installed `actools_bs5` theme runtime and production content-security policy were not tested here. The pinned-contract fixture is not certification of that deployment. Run the module on a staging copy of that stack before deploying. Check toolbar/header offsets, theme overrides, locally served fonts/scripts/styles and the MathJax worker policy there.
+PHP 8.4 for this new release, Percona, the production BOA/Nginx deployment, the full installed `actools_bs5` theme runtime and production content-security policy were not tested here. The pinned-contract fixture is not certification of that deployment. Run the module on a staging copy of that stack before deploying. Check toolbar/header offsets, theme overrides, locally served fonts/scripts/styles and the MathJax worker policy there.
 
 The module declares Drupal 11.3+ / PHP 8.3+ compatibility; the exact exercised versions are the table above. This is not a formal screen-reader, WCAG, performance/load, multilingual or penetration-test certification. Private-file authoring, assessment delivery and DOCX round trips are outside this release's implemented scope.

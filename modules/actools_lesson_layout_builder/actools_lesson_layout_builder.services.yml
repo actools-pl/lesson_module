@@ -1,0 +1,14 @@
+services:
+  actools_lesson_layout_builder.integration:
+    class: Drupal\actools_lesson_layout_builder\Service\SharedLayoutIntegration
+    arguments: ['@entity_type.manager', '@entity.repository', '@context.repository', '@current_route_match', '@plugin.manager.block']
+  actools_lesson_layout_builder.route_subscriber:
+    class: Drupal\actools_lesson_layout_builder\Routing\LayoutRouteSubscriber
+    tags:
+      - { name: event_subscriber }
+  actools_lesson_layout_builder.override_access:
+    class: Drupal\actools_lesson_layout_builder\Access\ManagedOverrideAccess
+    arguments: ['@entity_type.manager']
+    tags:
+      - { name: access_check, applies_to: _actools_lesson_shared_layout_access }
+

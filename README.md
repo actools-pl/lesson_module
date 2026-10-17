@@ -9,6 +9,7 @@ The module supplies the lesson experience. Your Drupal theme continues to supply
 - [Installation and BOA deployment](docs/INSTALLATION.md)
 - [Lesson authoring and publication](docs/EDITOR_GUIDE.md)
 - [Actools BS5 integration](docs/THEME_INTEGRATION.md)
+- [Optional shared Layout Builder presentation](docs/LAYOUT_BUILDER.md)
 - [Updates, backups and troubleshooting](docs/OPERATIONS.md)
 - [Architecture and existing content](docs/ARCHITECTURE.md)
 - [Tests](tests/README.md) and [executed validation](VALIDATION.md)
@@ -23,7 +24,7 @@ See [the 1.0.3 corrective-upgrade notes](docs/UPGRADE_1_0_3.md) for the independ
 - A writable public file directory for teaching diagrams. Full native-editor capacity needs `max_input_vars=4096`, `post_max_size=128M` and `upload_max_filesize=20M`; upload-count limits must cover the actual pending file controls. The form checks its complete input budget and blocks unsafe submissions. See [server capacity](docs/UPGRADE_1_0_3.md#authoring-capacity).
 - JavaScript enables mathematics typesetting and small interface enhancements. Reading, navigation, authoring actions and account progress also work without JavaScript. TeX source remains visible when typesetting is unavailable.
 
-No Paragraphs, Layout Builder, Bootstrap, React, remote CDN, account service or extra Composer runtime package is required. MathJax and its fonts are included locally with their upstream licenses.
+The base module requires no Paragraphs, Layout Builder, Bootstrap, React, remote CDN, account service or extra Composer runtime package. Optional shared presentation uses Drupal core Layout Builder; Paragraphs is deferred to a later project phase. MathJax and its fonts are included locally with their upstream licenses.
 
 ## Install
 
@@ -55,13 +56,17 @@ Test on a staging copy of your Drupal site first, with a database/configuration/
 
 A storage conflict stops installation with an explanation. Resolve it through a reviewed configuration change; do not delete or replace existing Actools fields to force installation. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Upgrade from 1.0.0, 1.0.1 or 1.0.2
+## Upgrade from 1.0.x
 
-Replace the module directory with this 1.0.3 release and rebuild Drupal caches (`vendor/bin/drush cr`). Preserve the site's database and public files. No module uninstall/reinstall or database schema migration is required. Reload any open lesson editor forms after updating.
+Replace the module directory with this 1.1.0 release and rebuild Drupal caches (`vendor/bin/drush cr`). Preserve the site's database and public files. No module uninstall/reinstall or database schema migration is required. Reload any open lesson editor forms after updating.
 
 Version 1.0.2 adds a scoped integration adapter for the current `actools_bs5` theme and keeps compatibility with its proposed header contract. See [the integration guide](docs/THEME_INTEGRATION.md) for the exact theme snapshot and validation scope.
 
 The update preserves saved steps, UUIDs, revisions, files and account progress. It changes authoring actions, reader presentation and private draft handling. Existing imported demonstration text is left intact; the cleaner sample introduction applies to new demo imports.
+
+## Optional Layout Builder presentation
+
+Enable `actools_lesson_layout_builder` when you want shared chapter/lesson page layouts. Add one complete reader block and supported supplementary content blocks/menus through core Layout Builder, then explicitly activate the shared layout on the relevant Topic/Resource display. The add-on changes no existing displays automatically. Authors keep the lesson editor; Study, private previews and dedicated Print retain the existing reader. Follow [the setup and rollback guide](docs/LAYOUT_BUILDER.md), including the implications for ordinary resources sharing those displays.
 
 ## Build a chapter
 
@@ -84,7 +89,7 @@ Changing previously reviewed teaching content clears its editorial reviewed flag
 
 ## Existing site and theme integration
 
-The module does not reapply the theme recipe, change a Topic's Layout Builder overrides, move old `field_actools_resources` cards into the lesson order, or convert legacy `kind=lesson` resources automatically. Only content with the explicit managed-reader flag uses this product experience.
+The module does not reapply the theme recipe, rewrite stored Topic Layout Builder overrides, move old `field_actools_resources` cards into the lesson order, or convert legacy `kind=lesson` resources automatically. Only content with the explicit managed-reader flag uses this product experience. The optional Layout Builder add-on uses saved shared defaults for explicitly opted-in public managed displays; individual managed overrides remain stored but are not used or editable while it is enabled.
 
 The reader consumes the optional existing theme variables `--actools-header-height` and `--actools-header-admin-offset` for sticky offsets. It adds no competing site header. The supplied default styles cover desktop, narrow screens, dark preference, focus visibility and printing. Verify your site's typography, sticky header, Layout Builder overrides and print header on staging; details are in [docs/THEME_INTEGRATION.md](docs/THEME_INTEGRATION.md).
 
@@ -104,6 +109,7 @@ Uninstall is guarded. Export content first. Drupal also prevents removal of the 
 
 - `src/`, templates, styles and behavior: production module source.
 - `modules/actools_lesson_demo/`: optional original Surface Tension example and diagrams.
+- `modules/actools_lesson_layout_builder/`: optional core Layout Builder integration.
 - `tests/`: Drupal Unit/Kernel/Functional tests, retained browser regressions and a disposable CI runner.
 - `docs/`: structure, theme integration and future adapter boundaries.
 - `VALIDATION.md`: executed validation and deployment limits.

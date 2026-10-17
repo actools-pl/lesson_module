@@ -98,7 +98,14 @@ function actools_lesson_node_view_alter(array &$build, NodeInterface $node, Enti
   $attachments = $build['#attached'] ?? [];
   $original_cache = \Drupal\Core\Cache\CacheableMetadata::createFromRenderArray($build);
   $preview = !empty($node->in_preview) || (!$node->isPublished() && $node->access('update'));
-  if (LessonAccess::isLesson($node)) {
+  $shared_layout = \Drupal::hasService('actools_lesson_layout_builder.integration')
+    ? \Drupal::service('actools_lesson_layout_builder.integration')->build($node, $display)
+    : NULL;
+  if ($shared_layout !== NULL) {
+    $build = $shared_layout;
+    $original_cache->merge(\Drupal\Core\Cache\CacheableMetadata::createFromRenderArray($build))->applyTo($build);
+  }
+  elseif (LessonAccess::isLesson($node)) {
     $match = \Drupal::routeMatch();
     $route_revision = $match->getParameter('node_revision');
     $revision_preview = $match->getRouteName() === 'entity.node.revision'

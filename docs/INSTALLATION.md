@@ -1,4 +1,4 @@
-# Installation — Actools Lessons 1.0.3
+# Installation — Actools Lessons 1.1.0
 
 This repository contains the Drupal module at its root. The GitHub repository name is **not** its Drupal machine name.
 
@@ -16,7 +16,7 @@ Clone or extract the repository into a directory named `actools_lesson`. The res
 
 The release declares Drupal **11.3+ within Drupal 11** and PHP **8.3+**. Its declared core dependencies include Node, Field, Text, Filter, CKEditor 5, Options, File, Image, User and Taxonomy. Drupal enables required dependencies when enabling the module. Teaching figures require writable public file storage. MathJax and fonts are bundled locally; no frontend package build or remote CDN is required.
 
-Final **1.0.3** native validation passed **86 tests / 1272 assertions** on **Drupal 11.4.10, PHP 8.3.6 and SQLite**, followed by the retained browser regressions. Unit 8/53, Kernel 48/718 and Functional 30/501 ran through the shared disposable test entry point. The full installed-Drupal UI baseline remains 1.0.1; the focused theme and failure fixtures have their own scope. PHP 8.4, Percona, BOA/Nginx, the installed production theme and CSP remain target-platform acceptance checks. See [VALIDATION.md](../VALIDATION.md) for exact evidence and hosted-CI status.
+Final **1.1.0** native validation passed **105 tests / 1613 assertions** on **Drupal 11.4.10, PHP 8.3.6 and SQLite**, followed by the retained browser regressions including shared layouts. Unit 8/53, Kernel 59/882 and Functional 38/678 ran through the shared disposable test entry point. Native tests exercise Layout Builder settings/editing, preservation, access, revision and cache boundaries; focused browser fixtures exercise its reader presentation. The full installed-Drupal UI baseline remains 1.0.1. PHP 8.4 for this new release, Percona, BOA/Nginx, the installed production theme and CSP remain target-platform acceptance checks. See [VALIDATION.md](../VALIDATION.md) for exact evidence and hosted-CI status.
 
 ## Choose the correct codebase and site
 
@@ -40,7 +40,7 @@ cd /absolute/path/to/drupal-project
 git clone https://github.com/actools-pl/lesson_module.git web/modules/custom/actools_lesson
 ```
 
-This corrective release has no release tag. Select the reviewed 1.0.3 source commit through your normal release process and record its commit ID. Do not assume that an arbitrary future repository HEAD is this release. For an existing checkout, inspect local changes before updating it; do not clone over it.
+This release has no release tag. Select the reviewed 1.1.0 source commit through your normal release process and record its commit ID. Do not assume that an arbitrary future repository HEAD is this release. For an existing checkout, inspect local changes before updating it; do not clone over it.
 
 A non-Composer or managed platform may use a different document root. Place `actools_lesson` under that actual root's `modules/custom/`, using the platform's staging/build process.
 
@@ -58,6 +58,8 @@ vendor/bin/drush --root=/absolute/path/to/drupal-project/web --uri=https://stagi
 Replace the example paths and URI. Confirm that `status` identifies the intended Drupal root, site and connected database before enabling. If your shell is already inside the Drupal document root, `vendor/bin/drush` usually is **not** there: invoke the approved executable by its project-relative or absolute path, retaining `--root` and `--uri`. A configured platform Drush alias is also appropriate when it resolves to the intended site. Enabling through **Extend** is an alternative.
 
 Open **Content → Actools Lessons**, `/admin/content/actools-lessons`. The module creates missing compatible Topic/Resource structure. If installation reports conflicting field storage, review the site's configuration before retrying; do not delete existing content or fields to force installation.
+
+For optional shared chapter/lesson layouts, follow [LAYOUT_BUILDER.md](LAYOUT_BUILDER.md). The base module remains independent of Layout Builder; enabling the add-on does not configure displays automatically.
 
 ## Permissions and existing workflows
 

@@ -69,6 +69,12 @@ Prefer a new managed chapter or review/migrate an existing Topic's teaching cont
 
 PR #3's optional finder searches titles/summaries with kind/level filters. It is not a search of structured lesson steps. Check path/View conflicts and anonymous access before applying its recipe or adding a finder menu link.
 
+## Optional shared Layout Builder presentation — 1.1.0
+
+The optional `actools_lesson_layout_builder` add-on lets an explicitly opted-in Topic/Resource Default or Full display surround the complete reader with shared supplementary content blocks and menus. It keeps the existing theme/header contract and adds container-aware styles only inside its own layout/document wrappers. A narrow layout region collapses the reader's internal sidebar even on a wide screen.
+
+The preceding standalone-reader behaviour remains the default without opt-in. Existing per-node overrides are preserved; managed public pages use the validated shared default instead, while ordinary unmanaged content keeps native applicable overrides and field blocks. Private preview/history and dedicated Study/Print stay with the existing reader. Shared layouts are site configuration with immediate shared effect, outside a lesson's draft/revision lifecycle. Follow [LAYOUT_BUILDER.md](LAYOUT_BUILDER.md) for the complete contract.
+
 ## Mathematics, print and content security
 
 The module owns local mathematics typesetting inside its lesson document. The inspected theme libraries do not initialize MathJax. Coordinate one renderer if the actual site adds another math plugin.
