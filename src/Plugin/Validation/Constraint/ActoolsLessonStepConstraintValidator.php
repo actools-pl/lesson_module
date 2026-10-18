@@ -59,18 +59,43 @@ final class ActoolsLessonStepConstraintValidator extends ConstraintValidator {
       }
     }
     $ids = [];
+    $component_types = [];
+    foreach ($components as $component) {
+      if (is_array($component) && is_string($component['id'] ?? NULL)) {
+        $component_types[$component['id']] = $component['type'] ?? '';
+      }
+    }
     foreach ($components as $component) {
       if (!is_array($component) || !Uuid::isValid((string) ($component['id'] ?? '')) || isset($ids[$component['id'] ?? ''])) {
         $error('Every component needs its own valid, unique identity.');
         continue;
       }
       $ids[$component['id']] = TRUE;
-      if (array_diff(array_keys($component), ['id', 'type', 'heading', 'body', 'hint', 'answer', 'solution', 'tex', 'fid', 'alt', 'caption', 'description', 'source'])) {
+      if (array_diff(array_keys($component), ['id', 'type', 'heading', 'body', 'hint', 'answer', 'solution', 'tex', 'fid', 'alt', 'caption', 'description', 'source', 'parent_id', 'placement'])) {
         $error('A component contains unsupported properties.');
       }
       $type = $component['type'] ?? '';
       if (!in_array($type, ['text', 'equation', 'figure', 'result', 'error', 'example', 'practice', 'table'], TRUE)) {
         $error('A component has an unsupported type.');
+      }
+      $parent = array_key_exists('parent_id', $component) ? $component['parent_id'] : '';
+      $placement = array_key_exists('placement', $component) ? $component['placement'] : '';
+      if (array_key_exists('parent_id', $component) || array_key_exists('placement', $component)) {
+        if ($type !== 'figure') {
+          $error('Only figure components may attach to an example or practice region.');
+        }
+        elseif (!is_string($parent) || !is_string($placement)) {
+          $error('Figure attachment identity and placement must be strings.');
+        }
+        elseif ($parent === '') {
+          if ($placement !== '') {
+            $error('Choose an example or practice in this step before choosing a figure placement.');
+          }
+        }
+        elseif (!Uuid::isValid($parent) || !in_array($component_types[$parent] ?? '', ['example', 'practice'], TRUE)
+          || !in_array($placement, ['prompt', 'hint', 'answer', 'solution'], TRUE)) {
+          $error('Attach the figure to an existing example or practice in this step and choose Prompt, Hint, Answer or Solution.');
+        }
       }
       foreach (['heading' => 255, 'tex' => 32000, 'alt' => 1024, 'caption' => 4000, 'description' => 12000, 'source' => 4000] as $property => $limit) {
         if (isset($component[$property]) && (!is_string($component[$property]) || mb_strlen($component[$property]) > $limit)) {

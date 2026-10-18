@@ -31,4 +31,4 @@ A later assessment integration should resolve an exact external item ID, variant
 
 ## Source preservation
 
-For a future document importer, retain the original DOCX and OMML source, source file checksum and location, original figure, migration timestamp and scientific/editorial status. Convert approved material into editable native text/TeX/components. Web TeX does not promise a lossless OMML/DOCX round trip, and a polished reader does not substitute for editorial review.
+For a future document importer, retain the original DOCX and OMML source, source file checksum and location, original figure, migration timestamp and scientific/editorial status. Convert approved material into editable native text/TeX/components. Web TeX does not promise a lossless OMML/DOCX round trip, and a polished reader does not substitute for editorial review. See [CONTENT_MAPPING.md](CONTENT_MAPPING.md) for separate book/UUID identities, approved asset paths and the representative-lesson acceptance gate. Scientific figures can now be attached to same-step example/practice regions, including a closed solution, without changing the storage model.

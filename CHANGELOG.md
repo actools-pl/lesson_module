@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 — 2026-10-18
+
+- Guard published lessons against losing their chapter through outline removal, clearing the chapter role or chapter deletion; provide an explicit authorized unpublish action before moving lessons.
+- Protect pending managed adoption behind ordinary Resource defaults, including stale native edits and defensive storage writes, while retaining ordinary legacy saving.
+- Keep chapter publication under native Drupal or the site's moderation workflow, with an explicit in-form notice about public order changes.
+- Attach existing flat figure components to an example/practice prompt, hint, answer or solution; preserve managed files, UUID anchors, revision history and print disclosure behaviour.
+- Add focused native/browser regressions and manuscript identity/asset guidance. Existing content is preserved without a database schema migration. No Paragraphs dependencies, implementation or migration.
+
 ## 1.1.0 — 2026-10-17
 
 - Add optional shared Layout Builder presentation for published managed chapters and lessons, using one complete reader plus supported supplementary content blocks and menus.

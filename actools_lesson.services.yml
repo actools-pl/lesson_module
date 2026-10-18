@@ -7,12 +7,15 @@ services:
   actools_lesson.completeness:
     class: Drupal\actools_lesson\Service\TeachingContentCompleteness
     arguments: ['@entity_type.manager', '@image.factory']
+  actools_lesson.saved_state:
+    class: Drupal\actools_lesson\Service\SavedLessonState
+    arguments: ['@entity_type.manager', '@database']
   actools_lesson.editorial:
     class: Drupal\actools_lesson\Service\EditorialWorkflow
-    arguments: ['@entity_type.manager', '@current_user', '@lock', '@datetime.time', '@actools_lesson.completeness', '@?content_moderation.moderation_information']
+    arguments: ['@entity_type.manager', '@current_user', '@lock', '@datetime.time', '@actools_lesson.completeness', '@actools_lesson.saved_state', '@?content_moderation.moderation_information']
   actools_lesson.membership:
     class: Drupal\actools_lesson\Service\MembershipManager
-    arguments: ['@entity_type.manager', '@database', '@actools_lesson.completeness']
+    arguments: ['@entity_type.manager', '@database', '@actools_lesson.completeness', '@actools_lesson.saved_state']
   actools_lesson.outline:
     class: Drupal\actools_lesson\Service\OutlineResolver
     arguments: ['@entity_type.manager', '@actools_lesson.membership']

@@ -30,13 +30,15 @@ The installer preflights existing storage before mutation, creates missing compa
 
 The custom `actools_lesson_step` field stores a stable `step_id`, title, optional flag, editorial reviewed flag, content version and a bounded JSON array of teaching components. Every component has a stable UUID and one of eight semantic types. JSON is an internal storage representation; the field widget is a structured Form API builder.
 
+An ordinary figure may optionally carry `parent_id` and `placement` to associate it with an example/practice in the same step. These remain flat components, not child entities: figures keep their UUID, file usage and normal limits. Rendering groups valid associations into prompt/hint/answer/solution regions; invalid stored associations fall back to standalone figures, while new writes are validated strictly. Cloning remaps associations and parent removal detaches figures without deleting their content.
+
 A native node revision owns the whole document atomically. There are no independently published child components and no duplicated manuscript for the continuous/print view. The main reader, continuous mode and print mode select the same document and render it differently.
 
 Choosing a custom field keeps this release installable with Drupal core and avoids requiring unmerged theme work or new contrib dependencies. A future migration to Paragraphs or another component entity model must preserve step UUIDs, component UUIDs, component types, content versions, node/revision provenance and file usage. It must not regenerate links or read marks based on row order.
 
 A public reader reloads the current default published node. Arbitrary `revision` or `revision_id` query values do not select drafts. Native preview retains the authorized preview node, is private and never changes learner progress. An unpublished managed canonical page is an authorized editor preview; the public Study route remains closed.
 
-## Editorial workflow in 1.0.1
+## Editorial workflow
 
 Managed lessons outside an existing core moderation workflow use native node forms with explicit Save draft and Publish reviewed lesson actions. A draft of a published lesson is an unpublished non-default revision. The public reader remains on the published default; native editing loads the latest draft only after checking update access to that revision. The private draft preview route also checks the selected latest revision and is uncacheable.
 
@@ -48,7 +50,9 @@ Workbench draft titles/readiness are shown only when the latest revision itself 
 
 The ordered chapter reference field is authoritative. `actools_lesson_membership` is only a derived uniqueness index, with `lesson_nid` as its primary key. Friendly entity validation rejects wrong resource kinds, duplicate rows, multiple chapter owners and incomplete publication. A database uniqueness guard catches concurrent stale ownership checks. Index synchronization occurs only when saving the default chapter revision, inside native entity storage's transaction. Saving a non-default chapter draft does not reorder the public route.
 
-The module does not claim chapter-wide atomic publication. The supported workflow is draft lessons → chapter references → publish chapter/individual reviewed lessons. Moving a lesson requires removing it from the previous chapter before assigning it to the next.
+The module does not claim chapter-wide atomic publication. The supported workflow is draft lessons → chapter references → publish chapter/individual reviewed lessons. Default chapter removal, clearing the chapter flag and deletion reject detaching published managed lessons. Moving a published lesson requires unpublishing it, removing its old reference, assigning its new chapter and publishing again. Nondefault chapter drafts do not modify the public route. Existing orphans are not automatically reassigned.
+
+The managed editor provides an authorized Unpublish lesson action using the same revision snapshot and save guard. It makes the latest authorized content an unpublished default revision while retaining history. Existing core moderation remains authoritative. Default/latest checks also protect pending adoption behind ordinary Resource defaults and stale native forms; ordinary unrelated Resources keep core behaviour.
 
 Unpublishing a chapter hides parent navigation from users who cannot view it. Independently published lessons remain independently addressable. Public file URLs also remain independent. Sites that require inherited enrollment or private asset rules should add a deliberate access policy; a hidden chapter is not such a policy.
 

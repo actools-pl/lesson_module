@@ -10,18 +10,69 @@ use Drupal\node\NodeInterface;
 
 /** Canonical membership is the chapter reference field; the index guards races. */
 final class MembershipManager {
-  public function __construct(private readonly EntityTypeManagerInterface $entityTypeManager, private readonly Connection $database, private readonly TeachingContentCompleteness $completeness) {}
+  public const DETACH_ERROR = 'Unpublish the affected lessons before removing them from a chapter, turning off its chapter role, or deleting it.';
+
+  public function __construct(private readonly EntityTypeManagerInterface $entityTypeManager, private readonly Connection $database, private readonly TeachingContentCompleteness $completeness, private readonly SavedLessonState $savedState) {}
 
   public function owner(int $lessonId): ?NodeInterface {
-    $ids = $this->entityTypeManager->getStorage('node')->getQuery()->accessCheck(FALSE)
-      ->condition('type', 'actools_topic')->condition('field_actools_lesson_chapter', 1)
-      ->condition('field_actools_lessons.target_id', $lessonId)->sort('nid')->range(0, 1)->execute();
-    return $ids ? $this->entityTypeManager->getStorage('node')->load(reset($ids)) : NULL;
+    $id = $this->savedState->ownerId($lessonId);
+    return $id ? $this->savedState->defaultNode($id) : NULL;
+  }
+
+  /** Serialize default ownership/publication changes until native SQL commit. */
+  public function lockForMutation(NodeInterface $node): void {
+    $ids = $node->id() ? [(int) $node->id()] : [];
+    if ($node->bundle() === 'actools_topic') {
+      if ($node->id()) {
+        $ids = array_merge($ids, $this->savedState->references((int) $node->id(), FALSE));
+      }
+      if (LessonAccess::isChapter($node)) {
+        $ids = array_merge($ids, array_column($node->get('field_actools_lessons')->getValue(), 'target_id'));
+      }
+    }
+    elseif ($node->bundle() === 'actools_resource' && $node->id()) {
+      if ($owner = $this->savedState->ownerId((int) $node->id(), FALSE)) {
+        $ids[] = $owner;
+      }
+    }
+    $this->savedState->lock($ids);
+    // A competing chapter save may have added references since the first read.
+    if ($node->bundle() === 'actools_topic' && $node->id()) {
+      $this->savedState->lock($this->savedState->references((int) $node->id()));
+    }
+  }
+
+  /** Deleting a revision object still deletes the entire node/default outline. */
+  public function deletionErrors(NodeInterface $node): array {
+    return $this->detachmentErrors($node, TRUE);
+  }
+
+  private function detachmentErrors(NodeInterface $node, bool $delete = FALSE): array {
+    if (!$node->id() || $node->bundle() !== 'actools_topic' || (!$delete && !$node->isDefaultRevision())) {
+      return [];
+    }
+    $saved = $this->savedState->defaultNode((int) $node->id());
+    if (!$saved || !$this->savedState->isChapter((int) $node->id())) {
+      return [];
+    }
+    $previous = $this->savedState->references((int) $node->id());
+    $remaining = !$delete && LessonAccess::isChapter($node)
+      ? array_map('intval', array_column($node->get('field_actools_lessons')->getValue(), 'target_id')) : [];
+    $removed = array_values(array_diff($previous, $remaining));
+    $this->savedState->lock($removed);
+    foreach ($removed as $id) {
+      // Always reload the saved default; never trust an unsaved cached fixture.
+      $this->savedState->defaultNode($id);
+      if ($this->savedState->isPublishedManagedDefault($id)) {
+        return [self::DETACH_ERROR];
+      }
+    }
+    return [];
   }
 
   /** Returns friendly errors both for Form API and defensive storage checks. */
   public function validate(NodeInterface $node): array {
-    $errors = [];
+    $errors = $this->detachmentErrors($node);
     if (LessonAccess::isChapter($node)) {
       $seen = [];
       $items = $node->get('field_actools_lessons')->getValue();
@@ -35,13 +86,13 @@ final class MembershipManager {
           continue;
         }
         $seen[$id] = TRUE;
-        $lesson = $this->entityTypeManager->getStorage('node')->load($id);
-        if (!$lesson instanceof NodeInterface || !LessonAccess::isLesson($lesson)) {
+        $lesson = $this->savedState->defaultNode($id);
+        if (!$lesson instanceof NodeInterface || !LessonAccess::isLesson($lesson) || !$this->savedState->isManaged($id)) {
           $errors[] = 'The chapter outline can contain only Actools managed lessons. Save new lessons as drafts first.';
           continue;
         }
-        $owner = $this->owner($id);
-        if ($owner && (int) $owner->id() !== (int) $node->id()) {
+        $owner = $this->savedState->ownerId($id);
+        if ($owner && $owner !== (int) $node->id()) {
           // Avoid leaking a restricted chapter's title to an editor.
           $errors[] = 'A selected lesson already belongs to another chapter. Remove it from that chapter before moving it.';
         }
@@ -56,7 +107,7 @@ final class MembershipManager {
         $errors[] = 'Choose a Core or Extension learning path.';
       }
       if ($node->isPublished() && $node->isDefaultRevision()) {
-        if (!$node->id() || !$this->owner((int) $node->id())) {
+        if (!$node->id() || !$this->savedState->ownerId((int) $node->id())) {
           $errors[] = 'Save this lesson as a draft, add it to a chapter, then publish it.';
         }
         if ($node->get('field_actools_lesson_steps')->isEmpty()) {
@@ -79,7 +130,7 @@ final class MembershipManager {
       }
     }
     // Clearing a flag cannot silently invalidate a chapter's references.
-    if ($node->bundle() === 'actools_resource' && !LessonAccess::isLesson($node) && $node->id() && $this->owner((int) $node->id())) {
+    if ($node->bundle() === 'actools_resource' && !LessonAccess::isLesson($node) && $node->id() && $this->savedState->ownerId((int) $node->id())) {
       $errors[] = 'Remove this resource from its chapter before turning off the lesson reader or changing its kind.';
     }
     return array_values(array_unique($errors));

@@ -95,3 +95,8 @@ On a staging clone with the deployed theme revision:
 4. Under the actual administration theme, save/reopen drafts, move/duplicate builder content, recover hidden-field errors, and verify Save draft versus Publish hierarchy. Keep Claro where the platform requires it.
 5. Check private drafts against separate public content, warm caches as anonymous and two learners, Read all, no JavaScript, wide tables, full-resolution figures, math and Print.
 6. Retain the theme's card/caption/image/download/navigation checks. Follow the managed-platform deployment/Verify process; repository tests do not perform live installation or BOA Verify.
+
+
+## 1.2.0 authoring actions
+
+The new **Unpublish lesson** action is secondary, alongside **Save draft**. The scoped compatibility stylesheet corrects main-theme submit styling for both actions; **Publish reviewed lesson** remains primary. This stylesheet is versioned 1.2.0. No global theme header, palette or unrelated submit action is changed.

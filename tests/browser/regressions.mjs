@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {runLayoutBuilderRegression} from './layout-builder.mjs';
+import {runFigurePlacementRegression, runEditorActionStyleRegression} from './figure-placement.mjs';
 
 const A = '11111111-1111-4111-8111-111111111111';
 const B = '22222222-2222-4222-8222-222222222222';
@@ -198,6 +199,8 @@ export async function runRegressions({ browser, baseURL, moduleRoot, outputDir }
   assert.equal(await adapter.locator('#page>header').getAttribute('class'),null);
   checks.themeAdapterNativeHandoff = true;
   checks.sharedLayoutBuilder = await runLayoutBuilderRegression({browser,baseURL,moduleRoot,outputDir});
+  checks.figurePlacement = await runFigurePlacementRegression({browser,baseURL,moduleRoot,outputDir});
+  checks.editorActionStyle = await runEditorActionStyleRegression({browser,baseURL,moduleRoot});
   assert.deepEqual(errors,[]);
   checks.browserErrors = errors;
   return checks;

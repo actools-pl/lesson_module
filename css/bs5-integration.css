@@ -9,11 +9,11 @@
 }
 
 /* Main's input-submit Twig adds btn-primary even to #button_type secondary.
- * Correct only auxiliary builder submits and the explicit Save draft action.
+ * Correct only auxiliary builder submits and the explicit Save draft and Unpublish lesson actions.
  * Publish, unrelated forms, and the theme's primary palette retain their roles.
  */
 .actools-managed-form .actools-author input[type='submit'].btn.btn-primary,
-.actools-managed-form input[type='submit'][name='actools_lesson_save_draft'].btn.btn-primary {
+.actools-managed-form input[type='submit']:is([name='actools_lesson_save_draft'], [name='actools_lesson_unpublish']).btn.btn-primary {
   --bs-btn-color: var(--als-author-ink, #172d38);
   --bs-btn-bg: var(--als-author-paper, #fff);
   --bs-btn-border-color: var(--als-author-line, #c8d5db);
@@ -32,13 +32,13 @@
   white-space: normal;
 }
 .actools-managed-form .actools-author input[type='submit'].btn.btn-primary:is(:hover, :active),
-.actools-managed-form input[type='submit'][name='actools_lesson_save_draft'].btn.btn-primary:is(:hover, :active) {
+.actools-managed-form input[type='submit']:is([name='actools_lesson_save_draft'], [name='actools_lesson_unpublish']).btn.btn-primary:is(:hover, :active) {
   color: var(--bs-btn-hover-color);
   background-color: var(--bs-btn-hover-bg);
   border-color: var(--bs-btn-hover-border-color);
 }
 .actools-managed-form .actools-author input[type='submit'].btn.btn-primary:disabled,
-.actools-managed-form input[type='submit'][name='actools_lesson_save_draft'].btn.btn-primary:disabled {
+.actools-managed-form input[type='submit']:is([name='actools_lesson_save_draft'], [name='actools_lesson_unpublish']).btn.btn-primary:disabled {
   color: var(--bs-btn-disabled-color);
   background-color: var(--bs-btn-disabled-bg);
   border-color: var(--bs-btn-disabled-border-color);

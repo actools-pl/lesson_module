@@ -10,6 +10,7 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\Session\AccountProxyInterface;
@@ -32,6 +33,7 @@ final class EditorialWorkflow {
     private readonly LockBackendInterface $lock,
     private readonly TimeInterface $time,
     private readonly TeachingContentCompleteness $completeness,
+    private readonly SavedLessonState $savedState,
     private readonly ?object $moderationInformation = NULL,
   ) {}
 
@@ -42,34 +44,64 @@ final class EditorialWorkflow {
 
   /** Returns the latest saved revision; callers must check update access. */
   public function latest(NodeInterface $node): NodeInterface {
-    if (!$node->id()) {
-      return $node;
-    }
-    $storage = $this->entityTypeManager->getStorage('node');
-    $storage->resetCache([$node->id()]);
-    $id = $storage->getLatestRevisionId($node->id());
-    $latest = $id ? $storage->loadRevisionUnchanged($id) : NULL;
-    if (!$latest instanceof NodeInterface) {
-      return $node;
-    }
-    $langcode = $node->language()->getId();
-    return $latest->hasTranslation($langcode) ? $latest->getTranslation($langcode) : $latest;
+    return $this->savedState->latest($node);
   }
 
   /** Runs before widgets build, so editing reopens the saved draft. */
   public function prepareForm(NodeInterface $node, string $operation, FormStateInterface $formState): void {
-    if (!in_array($operation, ['default', 'edit'], TRUE) || !$this->manages($node)) {
+    if (!in_array($operation, ['default', 'edit'], TRUE)) {
       return;
     }
-    if ($node->id()) {
+    if ($node->id() && $node->bundle() === 'actools_resource') {
+      $default = $this->savedState->defaultNode((int) $node->id());
       $latest = $this->latest($node);
+      if (!LessonAccess::isLesson($node) && (!$default || !LessonAccess::isLesson($default)) && !LessonAccess::isLesson($latest)) {
+        return;
+      }
       if (!$latest->access('update', $this->currentUser) || !LessonAccess::isLesson($latest)) {
-        throw new AccessDeniedHttpException('This lesson is not available for editing.');
+        throw new AccessDeniedHttpException('This content is not available for editing.');
+      }
+      if ($default && !LessonAccess::isLesson($default) && \Drupal::request()->isMethod('POST')
+        && !isset($formState->getUserInput()['actools_lesson_editorial_token'])) {
+        // The browser rendered an ordinary Resource form before adoption.
+        // Keep that form's schema intact so boundary validation can explain
+        // the stale state instead of failing the managed builder input guard.
+        return;
       }
       $latest->setRevisionLogMessage(NULL);
       $formState->getFormObject()->setEntity($latest);
+      $node = $latest;
+    }
+    if (!$this->manages($node)) {
+      return;
     }
     $formState->set('actools_lesson.editorial', TRUE);
+  }
+
+  /** Also installed on ordinary Resources, including already-cached forms. */
+  public function validateBoundary(array &$form, FormStateInterface $formState): void {
+    $node = $formState->getFormObject()->getEntity();
+    if (!$node instanceof NodeInterface || !$node->id() || $node->bundle() !== 'actools_resource') {
+      return;
+    }
+    $latest = $this->latest($node);
+    if (!LessonAccess::isLesson($latest)) {
+      return;
+    }
+    if (!$latest->access('update', $this->currentUser)) {
+      throw new AccessDeniedHttpException('This content is not available for editing.');
+    }
+    if (!$formState->get('actools_lesson.editorial') && $this->manages($latest)) {
+      $formState->setErrorByName('', $this->t('This content has changed. Reload the editor before saving.'));
+    }
+  }
+
+  /** A validation-bypassing save must not supersede pending managed adoption. */
+  public function assertAdoptionWrite(NodeInterface $node): void {
+    if ($node->id() && $node->bundle() === 'actools_resource' && !LessonAccess::isLesson($node)
+      && $this->savedState->pendingManagedAdoption((int) $node->id())) {
+      throw new EntityStorageException('This content has changed. Reload the editor before saving.');
+    }
   }
 
   /** Adds explicit actions without replacing native validation, CSRF or widgets. */
@@ -96,7 +128,7 @@ final class EditorialWorkflow {
       $form['revision']['#default_value'] = TRUE;
     }
     $publish = $node->get('status')->access('edit', $this->currentUser, TRUE);
-    $default = $node->id() ? $this->entityTypeManager->getStorage('node')->loadUnchanged($node->id()) : NULL;
+    $default = $node->id() ? $this->savedState->defaultNode((int) $node->id()) : NULL;
     $hasPublic = $default instanceof NodeInterface && $default->isPublished();
     $form['actools_editorial_status'] = [
       '#type' => 'container', '#weight' => -95,
@@ -130,6 +162,15 @@ final class EditorialWorkflow {
       $form['actions']['actools_publish']['#weight'] = 5;
       $nativeAccess = $save['#access'] ?? TRUE;
       $form['actions']['actools_publish']['#access'] = $publish->andIf($nativeAccess instanceof AccessResultInterface ? $nativeAccess : AccessResult::allowedIf((bool) $nativeAccess));
+      if ($hasPublic) {
+        $form['actions']['actools_unpublish'] = $save;
+        $form['actions']['actools_unpublish']['#value'] = $this->t('Unpublish lesson');
+        $form['actions']['actools_unpublish']['#name'] = 'actools_lesson_unpublish';
+        $form['actions']['actools_unpublish']['#actools_lesson_action'] = 'unpublish';
+        $form['actions']['actools_unpublish']['#weight'] = 10;
+        $form['actions']['actools_unpublish']['#access'] = $form['actions']['actools_publish']['#access'];
+        $form['actools_editorial_status']['unpublish_help'] = ['#markup' => $this->t('Unpublish lesson saves this latest draft as the new unpublished default and removes public reader access. Earlier public and draft revisions remain in history. Unpublish before removing or moving the lesson between chapters.')];
+      }
       $form['actions']['#attributes']['class'][] = 'actools-editorial-actions';
     }
   }
@@ -139,7 +180,8 @@ final class EditorialWorkflow {
     if (!$formState->get('actools_lesson.editorial') || !$this->manages($node)) {
       return;
     }
-    $publish = ($formState->getTriggeringElement()['#actools_lesson_action'] ?? 'draft') === 'publish';
+    $action = $formState->getTriggeringElement()['#actools_lesson_action'] ?? 'draft';
+    $publish = $action === 'publish';
     $node->setNewRevision(TRUE);
     $node->setRevisionCreationTime($this->time->getRequestTime());
     $node->setRevisionUserId($this->currentUser->id());
@@ -147,8 +189,12 @@ final class EditorialWorkflow {
       $node->setPublished();
       $node->isDefaultRevision(TRUE);
     }
+    elseif ($action === 'unpublish' && $node->get('status')->access('edit', $this->currentUser)) {
+      $node->setUnpublished();
+      $node->isDefaultRevision(TRUE);
+    }
     else {
-      $default = $node->id() ? $this->entityTypeManager->getStorage('node')->loadUnchanged($node->id()) : NULL;
+      $default = $node->id() ? $this->savedState->defaultNode((int) $node->id()) : NULL;
       $node->setUnpublished();
       $node->isDefaultRevision(!($default instanceof NodeInterface) || !$default->isPublished());
     }
@@ -165,9 +211,10 @@ final class EditorialWorkflow {
       return;
     }
     $formState->set('actools_lesson.editorial_snapshot', $snapshot);
-    if (($formState->getTriggeringElement()['#actools_lesson_action'] ?? '') === 'publish'
+    $action = $formState->getTriggeringElement()['#actools_lesson_action'] ?? '';
+    if (in_array($action, ['publish', 'unpublish'], TRUE)
       && !$node->get('status')->access('edit', $this->currentUser)) {
-      $formState->setErrorByName('status', $this->t('You do not have permission to publish this lesson. Save a draft instead.'));
+      $formState->setErrorByName('status', $this->t('You do not have permission to change this lesson’s publication status. Save a draft instead.'));
     }
   }
 
@@ -181,6 +228,10 @@ final class EditorialWorkflow {
       return;
     }
     try {
+      $latest = $this->latest($node);
+      if (!$latest->access('update', $this->currentUser)) {
+        throw new AccessDeniedHttpException('This content is not available for editing.');
+      }
       if (!$this->isFresh($node, $formState->get('actools_lesson.editorial_snapshot') ?? [])) {
         \Drupal::messenger()->addError($this->t('A newer version of this lesson was saved. Reload the editor before saving again.'));
         $formState->setRebuild();
@@ -200,7 +251,12 @@ final class EditorialWorkflow {
 
   /** Private preview access is independent of public reader access. */
   public function previewAccess(NodeInterface $node): AccessResultInterface {
+    $default = $node;
+    // Route conversion supplies the public default, which can still be an
+    // ordinary Resource while its authorized latest revision is being adopted.
+    $node = $this->latest($node);
     $result = AccessResult::allowedIf(LessonAccess::isLesson($node))->addCacheableDependency($node)
+      ->addCacheableDependency($default)
       ->andIf($node->access('update', $this->currentUser, TRUE));
     if (LessonAccess::isLesson($node)) {
       foreach (['title', 'field_actools_lesson_steps'] as $name) {

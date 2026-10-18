@@ -9,6 +9,10 @@
 {% set rendered_solution = solution|render %}
 {% set rendered_source = source|render %}
 {% set rendered_equation_number = equation_number|render %}
+{% set rendered_prompt_figures = prompt_figures|render %}
+{% set rendered_hint_figures = hint_figures|render %}
+{% set rendered_answer_figures = answer_figures|render %}
+{% set rendered_solution_figures = solution_figures|render %}
 <section class="actools-component actools-component--{{ component_type|clean_class }}"{% if id %} id="component-{{ id }}"{% endif %}{% if rendered_heading|trim and id %} aria-labelledby="component-heading-{{ id }}"{% endif %}>
   {% if rendered_heading|trim %}<h3{% if id %} id="component-heading-{{ id }}"{% endif %}>{{ rendered_heading }}</h3>{% endif %}
   {% if component_type == 'equation' %}
@@ -32,8 +36,9 @@
     {% if component_type == 'result' %}<p class="actools-component__type">{{ 'Key result'|t }}</p>{% elseif component_type == 'error' %}<p class="actools-component__type">{{ 'Common error'|t }}</p>{% elseif component_type == 'example' %}<p class="actools-component__type">{{ 'Worked example'|t }}</p>{% elseif component_type == 'practice' %}<p class="actools-component__type">{{ 'Practice'|t }}</p>{% endif %}
     {% if rendered_body|trim %}<div class="actools-component__body">{{ rendered_body }}</div>{% endif %}
   {% endif %}
-  {% if rendered_hint|trim %}<details class="actools-answer actools-answer--hint"{% if expanded %} open{% endif %}><summary>{{ 'Hint'|t }}</summary><div>{{ rendered_hint }}</div></details>{% endif %}
-  {% if rendered_answer|trim %}<details class="actools-answer actools-answer--answer"{% if expanded %} open{% endif %}><summary>{{ 'Answer'|t }}</summary><div>{{ rendered_answer }}</div></details>{% endif %}
-  {% if rendered_solution|trim %}<details class="actools-answer actools-answer--solution"{% if expanded %} open{% endif %}><summary>{{ 'Solution'|t }}</summary><div>{{ rendered_solution }}</div></details>{% endif %}
+  {% if rendered_prompt_figures|trim %}<div class="actools-component__prompt-figures">{{ rendered_prompt_figures }}</div>{% endif %}
+  {% if rendered_hint|trim or rendered_hint_figures|trim %}<details class="actools-answer actools-answer--hint"{% if expanded %} open{% endif %}><summary>{{ 'Hint'|t }}</summary><div>{{ rendered_hint }}{{ rendered_hint_figures }}</div></details>{% endif %}
+  {% if rendered_answer|trim or rendered_answer_figures|trim %}<details class="actools-answer actools-answer--answer"{% if expanded %} open{% endif %}><summary>{{ 'Answer'|t }}</summary><div>{{ rendered_answer }}{{ rendered_answer_figures }}</div></details>{% endif %}
+  {% if rendered_solution|trim or rendered_solution_figures|trim %}<details class="actools-answer actools-answer--solution"{% if expanded %} open{% endif %}><summary>{{ 'Solution'|t }}</summary><div>{{ rendered_solution }}{{ rendered_solution_figures }}</div></details>{% endif %}
   {% if rendered_source|trim %}<div class="actools-component__source">{{ rendered_source }}</div>{% endif %}
 </section>

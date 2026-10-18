@@ -1,4 +1,4 @@
-# Editor guide — Actools Lessons 1.1.0
+# Editor guide — Actools Lessons 1.2.0
 
 Open **Content → Actools Lessons** (`/admin/content/actools-lessons`). The workbench shows chapter assignment, step review readiness and whether a lesson is **Draft**, **Published** or **Published with draft**. Available actions depend on your native Drupal content, revision and text-format permissions. The workbench permission alone does not grant editing or publishing.
 
@@ -18,6 +18,10 @@ This guide describes the module's default lesson workflow. If Resource uses core
 | Scientific figure | Upload a PNG, JPEG, GIF or WebP, up to 20 MB. Supply meaningful alternative text; add a caption and longer diagram description where needed. |
 | Key result / Common error | Keep the statement concise and explain its conditions or correction. |
 | Worked example / Selected practice | Enter the question or given information, with optional hint, answer and worked solution. Reveals support study; they do not create a scored attempt. |
+
+To place a diagram inside an example or practice question, add a normal **Scientific figure** in the same step, select its target example/practice and choose its placement. Choose **Solution** for a solution-only diagram: it stays inside the closed solution reveal on screen and opens in Print. Leave the target empty for a standalone figure. A parent can have several figures; their order follows the figure components' order in the step.
+
+Duplicating an example/practice also duplicates its attached figures with independent identities when the step and lesson have room. Duplicating a step preserves associations within the duplicate. Removing a parent keeps its figures as standalone components. Every attached figure still counts as one component and uses the same public managed-file controls.
 
 The component's **Source / reviewed variant reference** is displayed to learners. Record an appropriate public source or exact reviewed variant/version. Do not put confidential editorial notes there.
 
@@ -40,13 +44,19 @@ Meaningful changes to teaching components advance that step's content version. L
 
 Changing previously reviewed teaching components clears the review flag. Save the draft, inspect the changed preview, then reopen and mark that saved content reviewed before publishing. Checking a previously reviewed step while changing its teaching content in the same submission does not bypass this review reset.
 
-The safe **Save draft / Publish reviewed lesson** actions apply to managed lessons. Chapters retain native Drupal saving/publication behavior; inspect their Published status and any site moderation workflow when changing an existing chapter.
+The safe **Save draft / Publish reviewed lesson** actions apply to managed lessons. Chapters retain native Drupal saving/publication behavior. Their editor now explicitly warns that saving a published chapter can change the public order immediately; follow any configured moderation workflow. Shared Layout Builder changes also have their own configuration lifecycle.
+
+Before removing a published lesson from a chapter, turning off a chapter's managed role or deleting a chapter, unpublish the affected lessons. In the module's workflow, an authorized publisher uses **Unpublish lesson**; under Content Moderation, use the configured unpublish transition. Then remove/reassign the lesson and publish again when ready. Save draft alone does not unpublish a public lesson. Chapter edits and single/bulk deletion reject unsafe detachment without changing saved content.
 
 ## Improve an already published lesson
 
 Choose **Edit** in the workbench. Where the module manages the workflow, editing reopens the latest authorized draft. **Save draft** retains the current published default for learners and saves the replacement privately. **Preview draft** shows your latest saved draft; **View published** shows the public version. The workbench reports **Published with draft** until the reviewed replacement is published.
 
 When all changed steps are reviewed, **Publish reviewed lesson** makes the replacement the published default. If the action is missing, ask the site administrator to check native publication permissions and Content Moderation configuration; the module does not grant them automatically.
+
+**Unpublish lesson** saves the latest authorized content as a new unpublished default revision, preserving earlier revisions and any pending draft content. Learners then lose public lesson access. Publication permissions are required; a public figure URL remains public independently.
+
+An ordinary Resource with a newer managed draft follows the latest revision's editing access. An inaccessible pending revision blocks editing without disclosing its contents. A stale ordinary editor cannot replace a newer managed adoption; reopen and reconcile through the authorized workflow.
 
 If another editor saves newer work, your stale form is rejected. Keep that tab open, copy your unsaved changes to a safe place, reopen the latest editor and reconcile them. Repeatedly submitting the stale form will not overwrite newer work. After a module update or cache rebuild, reload open editor forms before continuing.
 
@@ -58,7 +68,7 @@ Learners explicitly mark steps read or use the guided read-and-continue action. 
 
 Native Drupal revisions retain historical content and identities. Accounts with appropriate revision access can inspect an exact historical revision. A native restore creates a fresh teaching-content version where needed; it does not delete history. Restoring restricted-format text requires permission to use that format. Coordinate a restore with the publisher when a pending draft or moderation workflow exists.
 
-Legacy Topic/Resource content is not automatically converted. The managed-reader flags opt content into the lesson/chapter experience; the old resource-card field is not the chapter's lesson order. Optional taxonomy references select existing `edu_topics` terms, while **Stable chapter code** is separate metadata. See [CONTENT_AND_EXTENSION.md](CONTENT_AND_EXTENSION.md).
+Legacy Topic/Resource content is not automatically converted. The managed-reader flags opt content into the lesson/chapter experience; the old resource-card field is not the chapter's lesson order. Optional taxonomy references select existing `edu_topics` terms, while **Stable chapter code** is separate metadata. See [CONTENT_AND_EXTENSION.md](CONTENT_AND_EXTENSION.md) and [CONTENT_MAPPING.md](CONTENT_MAPPING.md) before preparing manuscript imports.
 
 ## Shared presentation
 

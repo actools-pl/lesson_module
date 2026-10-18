@@ -10,12 +10,14 @@ The module supplies the lesson experience. Your Drupal theme continues to supply
 - [Lesson authoring and publication](docs/EDITOR_GUIDE.md)
 - [Actools BS5 integration](docs/THEME_INTEGRATION.md)
 - [Optional shared Layout Builder presentation](docs/LAYOUT_BUILDER.md)
+- [1.2.0 integrity and figure-placement corrections](docs/UPGRADE_1_2_0.md)
+- [Manuscript identity and asset mapping](docs/CONTENT_MAPPING.md)
 - [Updates, backups and troubleshooting](docs/OPERATIONS.md)
 - [Architecture and existing content](docs/ARCHITECTURE.md)
 - [Tests](tests/README.md) and [executed validation](VALIDATION.md)
 - [Necessary enhancements review](docs/SECOND_REVIEW.md)
 
-See [the 1.0.3 corrective-upgrade notes](docs/UPGRADE_1_0_3.md) for the independent review findings and their fixes.
+See [the 1.2.0 corrections](docs/UPGRADE_1_2_0.md) for published ownership, pending adoption and figures inside solutions. See [the 1.0.3 corrective-upgrade notes](docs/UPGRADE_1_0_3.md) for the independent review findings and their fixes.
 
 ## Requirements
 
@@ -56,13 +58,13 @@ Test on a staging copy of your Drupal site first, with a database/configuration/
 
 A storage conflict stops installation with an explanation. Resolve it through a reviewed configuration change; do not delete or replace existing Actools fields to force installation. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Upgrade from 1.0.x
+## Upgrade from 1.x
 
-Replace the module directory with this 1.1.0 release and rebuild Drupal caches (`vendor/bin/drush cr`). Preserve the site's database and public files. No module uninstall/reinstall or database schema migration is required. Reload any open lesson editor forms after updating.
+Replace the module directory with this 1.2.0 release and rebuild Drupal caches (`vendor/bin/drush cr`). Preserve the site's database and public files. No module uninstall/reinstall or database schema migration is required. Reload any open lesson editor forms after updating.
 
 Version 1.0.2 adds a scoped integration adapter for the current `actools_bs5` theme and keeps compatibility with its proposed header contract. See [the integration guide](docs/THEME_INTEGRATION.md) for the exact theme snapshot and validation scope.
 
-The update preserves saved steps, UUIDs, revisions, files and account progress. It changes authoring actions, reader presentation and private draft handling. Existing imported demonstration text is left intact; the cleaner sample introduction applies to new demo imports.
+Version 1.2.0 adds guarded ownership transitions, an authorized Unpublish lesson action and figure placement inside examples/practice disclosures. See [the correction guide](docs/UPGRADE_1_2_0.md). The update preserves saved steps, UUIDs, revisions, files and account progress. It changes authoring actions, reader presentation and private draft handling. Existing imported demonstration text is left intact; the cleaner sample introduction applies to new demo imports.
 
 ## Optional Layout Builder presentation
 
@@ -75,6 +77,8 @@ Enable `actools_lesson_layout_builder` when you want shared chapter/lesson page 
 3. Use the numbered step outline and the builder's add, duplicate, remove and move controls. Saved sections collapse for easier scanning; opening a step or following its outline link exposes its controls. Step and component links remain stable when reordered. Duplicating generates new identities. Select **Save draft** initially.
 4. Select **Create chapter**, add the saved lesson drafts to **Lessons in reading order**, and reorder the reference rows. A lesson belongs to one chapter. Core and Extension paths have separate previous/next lesson routes.
 5. Preview lessons using Drupal's native Preview. Review changed teaching content, then mark the steps reviewed. Publish the chapter, then select **Publish reviewed lesson** for each ready lesson. **Save draft** preserves an already published version while you work privately; reopening the editor loads the latest draft. If another save makes your editor form stale, copy your changes before reloading the latest draft. Publication is deliberately staged; a chapter's unpublished lesson references are invisible to learners until those lessons are published.
+
+To move a published lesson, unpublish it first, remove it from its old chapter, assign its new chapter, then publish it again. Removing published lessons or deleting their chapter is otherwise blocked. Chapters retain native saving/moderation, with an explicit notice about immediate public order changes.
 
 Changing previously reviewed teaching content clears its editorial reviewed flag. Save a draft, preview the result, review it and then publish. Changing a step title or order preserves its reading identity. Learner read marks refer to a stable step and the version of its teaching content; changed content asks the learner to revisit it.
 

@@ -41,7 +41,10 @@ function actools_lesson_entity_type_alter(array &$entity_types): void {
 
 /** Implements hook_node_presave(). */
 function actools_lesson_node_presave(NodeInterface $node): void {
-  $errors = \Drupal::service('actools_lesson.membership')->validate($node);
+  $membership = \Drupal::service('actools_lesson.membership');
+  $membership->lockForMutation($node);
+  \Drupal::service('actools_lesson.editorial')->assertAdoptionWrite($node);
+  $errors = $membership->validate($node);
   if (LessonAccess::isLesson($node)) {
     // Programmatic writes must satisfy the same schema/file checks as the builder.
     foreach ($node->get('field_actools_lesson_steps')->validate() as $violation) {
@@ -50,6 +53,15 @@ function actools_lesson_node_presave(NodeInterface $node): void {
   }
   if ($errors) {
     throw new EntityStorageException(implode(' ', array_unique($errors)));
+  }
+}
+
+/** Implements hook_node_predelete(). */
+function actools_lesson_node_predelete(NodeInterface $node): void {
+  $membership = \Drupal::service('actools_lesson.membership');
+  $membership->lockForMutation($node);
+  if ($errors = $membership->deletionErrors($node)) {
+    throw new EntityStorageException(implode(' ', $errors));
   }
 }
 
@@ -142,6 +154,10 @@ function actools_lesson_node_view_alter(array &$build, NodeInterface $node, Enti
 /** Implements hook_form_BASE_FORM_ID_alter(). */
 function actools_lesson_form_node_form_alter(array &$form, FormStateInterface $form_state): void {
   $node = $form_state->getFormObject()->getEntity();
+  if ($node instanceof NodeInterface && $node->bundle() === 'actools_resource') {
+    // Ordinary cached forms also need to notice a new private managed adoption.
+    $form['#validate'][] = 'actools_lesson_editorial_boundary_validate';
+  }
   if (!$node instanceof NodeInterface || (!LessonAccess::isLesson($node) && !LessonAccess::isChapter($node))) {
     return;
   }
@@ -162,6 +178,55 @@ function actools_lesson_form_node_form_alter(array &$form, FormStateInterface $f
   }
   if (LessonAccess::isLesson($node)) {
     \Drupal::service('actools_lesson.editorial')->alterForm($form, $form_state);
+  }
+  else {
+    $form['actools_chapter_publication'] = [
+      '#type' => 'container', '#weight' => -96,
+      '#attributes' => ['class' => ['actools-author-status'], 'role' => 'note'],
+      'title' => ['#type' => 'html_tag', '#tag' => 'h3', '#value' => t('Chapter publication')],
+      'description' => ['#markup' => t('Saving a published chapter can immediately change its public lesson order. Chapters use Drupal’s native publication workflow. A new revision records history; it is not automatically a private draft. Use the site’s configured Content Moderation transitions when private review is required. Unpublish a lesson before removing it from a chapter.')],
+    ];
+  }
+}
+
+/** Native cached Resource forms must recheck the default/latest boundary. */
+function actools_lesson_editorial_boundary_validate(array &$form, FormStateInterface $form_state): void {
+  \Drupal::service('actools_lesson.editorial')->validateBoundary($form, $form_state);
+}
+
+/** Implements hook_form_BASE_FORM_ID_alter(). */
+function actools_lesson_form_node_confirm_form_alter(array &$form, FormStateInterface $form_state): void {
+  if ($form_state->getFormObject() instanceof \Drupal\node\Form\NodeDeleteForm) {
+    $form['#validate'][] = 'actools_lesson_chapter_delete_validate';
+  }
+}
+
+/** Validate the entire confirmation before native deletion starts. */
+function actools_lesson_chapter_delete_validate(array &$form, FormStateInterface $form_state): void {
+  $node = $form_state->getFormObject()->getEntity();
+  if ($node instanceof NodeInterface && ($errors = \Drupal::service('actools_lesson.membership')->deletionErrors($node))) {
+    $form_state->setErrorByName('', implode(' ', $errors) . ' ' . t('Nothing was deleted.'));
+  }
+}
+
+/** Implements hook_form_FORM_ID_alter(). */
+function actools_lesson_form_node_delete_multiple_confirm_form_alter(array &$form, FormStateInterface $form_state): void {
+  // Core stores this same snapshot on its cached confirmation form object.
+  $selection = \Drupal::service('tempstore.private')->get('entity_delete_multiple_confirm')->get(\Drupal::currentUser()->id() . ':node');
+  $form_state->set('actools_lesson.delete_selection', is_array($selection) ? array_keys($selection) : []);
+  $form['#validate'][] = 'actools_lesson_chapter_bulk_delete_validate';
+}
+
+/** A protected chapter blocks the whole bulk request without partial deletion. */
+function actools_lesson_chapter_bulk_delete_validate(array &$form, FormStateInterface $form_state): void {
+  $state = \Drupal::service('actools_lesson.saved_state');
+  $membership = \Drupal::service('actools_lesson.membership');
+  foreach ($form_state->get('actools_lesson.delete_selection') ?? [] as $id) {
+    $node = $state->defaultNode((int) $id);
+    if ($node && ($errors = $membership->deletionErrors($node))) {
+      $form_state->setErrorByName('', implode(' ', $errors) . ' ' . t('Nothing was deleted.'));
+      break;
+    }
   }
 }
 

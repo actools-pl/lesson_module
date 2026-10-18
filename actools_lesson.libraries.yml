@@ -32,7 +32,7 @@ author:
     - core/once
     - core/drupal.announce
 bs5_integration:
-  version: 1.0.3
+  version: 1.2.0
   css:
     theme:
       css/bs5-integration.css: {}

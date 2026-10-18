@@ -4,7 +4,7 @@
 
 The GitHub workflow in `.github/workflows/tests.yml` uses the same scripts on Ubuntu 24.04 with PHP 8.3 and 8.4. It pins Drupal and matching `drupal/core-dev` to 11.4.10, Drush to 13.8.0 and Playwright to 1.62.1. Top-level Drupal versions are pinned; Composer resolves their dependencies into a lock file retained with each run. This tests one Drupal patch version, not every version permitted by the module's Composer constraint.
 
-The workflow passed both PHP jobs for 1.0.3. At 1.1.0 release preparation, its new commit had not yet been published or run; local results do not establish a hosted PHP 8.4 pass for the new integration. Check the Actions result for the exact published commit. The workflow runs on pushes, pull requests and manual dispatch, has repository `contents: read` permission, does not retain checkout credentials, and contains no deployment or repository-write step.
+The workflow passed both PHP jobs for 1.1.0. At 1.2.0 release preparation, its new commit had not yet been published or run; local results do not establish a hosted PHP 8.4 pass for these new corrections. Check the Actions result for the exact published commit. The workflow runs on pushes, pull requests and manual dispatch, has repository `contents: read` permission, does not retain checkout credentials, and contains no deployment or repository-write step.
 
 ## Create a disposable development project
 
@@ -84,3 +84,10 @@ The scripts print the retained results path. Native stages write JUnit and logs;
 Review the first failure and its request/site evidence before rerunning. Earlier development encountered isolated-site dispatch failures in a long-lived combined server; the fresh-server-per-file approach retains that boundary explicitly. Report a failed attempt honestly even when a later run passes. See [VALIDATION.md](../VALIDATION.md) for release-specific results and limits.
 
 The native suites use Drupal storage, access handlers, node revisions, filtered text, managed files, real native forms and account-scoped progress. Layout Builder integration tests enable the optional add-on only inside their isolated fixtures, exercise native default-layout editing/configuration schema, and verify saved layouts, unmanaged content, protected overrides, private revisions and safe fallback. The base suite continues to test the main module without requiring the add-on. The `actools_lesson_test` module is test support only and belongs only in disposable test sites.
+
+
+## Integrity and figure-placement regressions — 1.2.0
+
+The retained native regressions cover published lesson detachment and chapter deletion, authorized unpublication, pending managed adoption with different owners and stale ordinary forms, and preservation of native legacy saving. Figure tests cover same-step placement, strict association validation, independent cloning/removal, file/revision ownership and disclosure/print output. The browser fixture uses actual Drupal-rendered figure markup and records its scope separately from full installed-theme acceptance.
+
+The source manuscript mapping guide is an acceptance plan, not a general importer or a claim that the full Surface Tension book has been converted. No Paragraphs module or migration is used by these tests.

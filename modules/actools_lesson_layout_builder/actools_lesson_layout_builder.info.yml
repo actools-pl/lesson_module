@@ -1,6 +1,6 @@
 name: Actools Lessons — shared layouts
 type: module
-version: '1.1.0'
+version: '1.2.0'
 description: 'Optional shared Layout Builder presentation around the complete chapter and lesson reader. Individual lesson layout overrides are unsupported.'
 package: Aarin Content Tools
 core_version_requirement: ^11.3

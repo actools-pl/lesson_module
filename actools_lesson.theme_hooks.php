@@ -31,6 +31,7 @@ return [
       'answer' => [], 'solution' => [], 'tex' => '', 'figure' => [],
       'caption' => [], 'description' => [], 'source' => [],
       'equation_number' => [], 'expanded' => FALSE,
+      'prompt_figures' => [], 'hint_figures' => [], 'answer_figures' => [], 'solution_figures' => [],
     ],
     'template' => 'actools-lesson-component',
   ],

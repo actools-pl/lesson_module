@@ -160,10 +160,7 @@ final class LessonDocumentBuilder {
       if ($mode === 'guided' && $index !== $current_index) {
         continue;
       }
-      $components = [];
-      foreach ($step['components'] as $component) {
-        $components[] = $this->componentRenderer->render($component, $lesson, $mode === 'print');
-      }
+      $components = $this->componentRenderer->renderStep($step['components'], $lesson, $mode === 'print');
       $steps_content[] = [
         '#theme' => 'actools_lesson_step',
         '#id' => $step['id'],

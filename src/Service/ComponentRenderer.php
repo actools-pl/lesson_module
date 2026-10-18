@@ -29,9 +29,51 @@ final class ComponentRenderer {
   ) {}
 
   /**
+   * Places flat figures in same-step example/practice regions exactly once.
+   *
+   * Historical malformed associations remain visible as standalone figures;
+   * validation rejects new malformed writes. No recursive grouping is allowed.
+   */
+  public function renderStep(array $components, NodeInterface $lesson, bool $print = FALSE): array {
+    $parents = [];
+    $counts = [];
+    foreach ($components as $component) {
+      if (!is_array($component) || !is_string($component['id'] ?? NULL)) {
+        continue;
+      }
+      $id = $component['id'];
+      $counts[$id] = ($counts[$id] ?? 0) + 1;
+      if (Uuid::isValid($id) && in_array($component['type'] ?? '', ['example', 'practice'], TRUE)) {
+        $parents[$id] = TRUE;
+      }
+    }
+    $attached = [];
+    $nested = [];
+    foreach ($components as $index => $component) {
+      $parent = is_array($component) ? ($component['parent_id'] ?? NULL) : NULL;
+      $placement = is_array($component) ? ($component['placement'] ?? NULL) : NULL;
+      if (is_array($component) && ($component['type'] ?? '') === 'figure'
+        && is_string($parent) && isset($parents[$parent]) && $counts[$parent] === 1
+        && is_string($placement) && in_array($placement, ['prompt', 'hint', 'answer', 'solution'], TRUE)) {
+        $attached[$parent][$placement][] = $this->render($component, $lesson, $print);
+        $nested[$index] = TRUE;
+      }
+    }
+    $build = [];
+    foreach ($components as $index => $component) {
+      if (!is_array($component) || isset($nested[$index])) {
+        continue;
+      }
+      $component_id = is_string($component['id'] ?? NULL) ? $component['id'] : '';
+      $build[] = $this->render($component, $lesson, $print, $attached[$component_id] ?? []);
+    }
+    return $build;
+  }
+
+  /**
    * Builds one component; denied figures return metadata without empty captions.
    */
-  public function render(array $component, NodeInterface $lesson, bool $print = FALSE): array {
+  public function render(array $component, NodeInterface $lesson, bool $print = FALSE, array $attached_figures = []): array {
     $metadata = CacheableMetadata::createFromObject($lesson);
     $type = $component['type'] ?? '';
     $id = $component['id'] ?? '';
@@ -57,6 +99,10 @@ final class ComponentRenderer {
       '#source' => $this->plain($component['source'] ?? ''),
       '#equation_number' => [],
       '#expanded' => $print,
+      '#prompt_figures' => $attached_figures['prompt'] ?? [],
+      '#hint_figures' => $attached_figures['hint'] ?? [],
+      '#answer_figures' => $attached_figures['answer'] ?? [],
+      '#solution_figures' => $attached_figures['solution'] ?? [],
     ];
 
     if ($type === 'figure') {

@@ -93,6 +93,9 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
     }
     $element['intro'] = ['#markup' => '<p class="actools-author__intro">' . $this->t('Build meaningful learning steps. Keep an explanation, its figure and its assumptions together. Move controls work with keyboard or without JavaScript. Changes are saved only when you save the lesson.') . '</p>'];
     $count = AuthoringInputGuard::componentCount($state['actools_steps']);
+    if (!empty($state['actools_action_notice'])) {
+      $element['action_notice'] = ['#type' => 'html_tag', '#tag' => 'p', '#value' => $state['actools_action_notice'], '#attributes' => ['class' => ['actools-author__notice'], 'role' => 'alert']];
+    }
     $element['capacity'] = ['#type' => 'html_tag', '#tag' => 'p', '#value' => $this->t('@count teaching components. New native-editor content is limited to 120 components across the lesson, 40 steps and 60 components per step. Existing larger documents are preserved; editing them requires sufficient server capacity.', ['@count' => $count]), '#attributes' => ['class' => ['actools-author__notice']]];
     // Drupal 11 forbids form-cache writes on the initial GET. Carry a signed
     // identity-only inventory into the first POST; authored content stays in
@@ -137,9 +140,11 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
       $step_element['components'] = ['#type' => 'container', '#tree' => TRUE, '#attributes' => ['class' => ['actools-author__components']]];
       foreach ($step['components'] as $component) {
         $cid = $component['id'];
-        $step_element['components'][$cid] = $this->componentElement($component, $path, $wrapper, $sid, in_array($cid, $ui['components'], TRUE));
-        if ($count >= AuthoringInputGuard::MAX_COMPONENTS) {
+        $step_element['components'][$cid] = $this->componentElement($component, $path, $wrapper, $sid, in_array($cid, $ui['components'], TRUE), $step['components']);
+        $duplicate_size = count(static::componentGroup($step['components'], $cid));
+        if ($count + $duplicate_size > AuthoringInputGuard::MAX_COMPONENTS || count($step['components']) + $duplicate_size > 60) {
           $step_element['components'][$cid]['actions']['component_duplicate']['#disabled'] = TRUE;
+          $step_element['components'][$cid]['duplicate_notice'] = ['#type' => 'html_tag', '#tag' => 'p', '#value' => $this->t('Duplicating this component and its attached figures would exceed the 60-component step or 120-component lesson limit. Remove content or use another step first.'), '#attributes' => ['class' => ['actools-author__notice']]];
         }
       }
       $step_element['new_type'] = ['#type' => 'select', '#title' => $this->t('Teaching component'), '#options' => array_map(fn ($label) => $this->t($label), self::TYPES), '#default_value' => 'text'];
@@ -154,7 +159,7 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
     return $element;
   }
 
-  private function componentElement(array $component, array $path, string $wrapper, string $sid, bool $open): array {
+  private function componentElement(array $component, array $path, string $wrapper, string $sid, bool $open, array $step_components): array {
     $type = $component['type'];
     $cid = $component['id'];
     $element = [
@@ -173,6 +178,16 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
       $element['tex'] = ['#type' => 'textarea', '#title' => $this->t('Editable TeX equation'), '#default_value' => $component['tex'] ?? '', '#rows' => 3, '#required' => TRUE, '#description' => $this->t('Enter TeX without dollar delimiters. Use the saved lesson preview to inspect the actual typeset equation.')];
     }
     elseif ($type === 'figure') {
+      $targets = ['' => $this->t('Standalone figure')];
+      $position = 0;
+      foreach ($step_components as $target) {
+        $position++;
+        if (in_array($target['type'], ['example', 'practice'], TRUE)) {
+          $targets[$target['id']] = $this->t('@number. @type · @heading', ['@number' => $position, '@type' => $this->t(self::TYPES[$target['type']]), '@heading' => ($target['heading'] ?? '') ?: $this->t('Untitled component')]);
+        }
+      }
+      $element['parent_id'] = ['#type' => 'select', '#title' => $this->t('Attach to example or practice'), '#options' => $targets, '#default_value' => is_string($component['parent_id'] ?? NULL) && isset($targets[$component['parent_id']]) ? $component['parent_id'] : '', '#description' => $this->t('Choose a component in this step, or keep the figure standalone. The image, caption and original-image link stay together. Removing the parent keeps its figures standalone.')];
+      $element['placement'] = ['#type' => 'select', '#title' => $this->t('Figure placement'), '#options' => ['prompt' => $this->t('Prompt / given information'), 'hint' => $this->t('Hint'), 'answer' => $this->t('Answer'), 'solution' => $this->t('Worked solution')], '#default_value' => in_array($component['placement'] ?? '', ['prompt', 'hint', 'answer', 'solution'], TRUE) ? $component['placement'] : 'prompt', '#description' => $this->t('Applied when attached. Hint, Answer and Worked solution figures stay inside their disclosure until opened; Print view expands them. Duplicating a parent also copies its attached figures within the editor limits.')];
       $element['fid'] = [
         '#type' => 'managed_file',
         '#title' => $this->t('Figure image'),
@@ -242,6 +257,7 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
     $sid = $button['#actools_step'];
     $cid = $button['#actools_component'];
     $total = AuthoringInputGuard::componentCount($steps);
+    unset($state['actools_action_notice']);
     $focus = $cid ? 'component:' . $cid : 'step:' . $sid;
     if ($action === 'step_add' && count($steps) < 40 && $total < AuthoringInputGuard::MAX_COMPONENTS) {
       $step = static::newStep();
@@ -264,11 +280,7 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
         $copy['step_id'] = static::uuid();
         $copy['title'] = trim($copy['title'] . ' (copy)');
         $copy['reviewed'] = FALSE;
-        foreach ($copy['components'] as &$component) {
-          $component['id'] = static::uuid();
-        }
-        unset($component);
-        $copy['components'] = array_column($copy['components'], NULL, 'id');
+        $copy['components'] = static::cloneComponents($copy['components']);
         $steps = static::insertAfter($steps, $sid, $copy['step_id'], $copy);
         $sid = $copy['step_id'];
         $ui['components'][] = array_key_first($copy['components']);
@@ -279,6 +291,7 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
       }
       else {
         $components = $steps[$sid]['components'];
+        $blocked_duplicate = FALSE;
         if ($action === 'component_add' && count($components) < 60 && $total < AuthoringInputGuard::MAX_COMPONENTS) {
           $type = $raw['steps'][$sid]['new_type'] ?? 'text';
           $component = static::newComponent(isset(self::TYPES[$type]) ? $type : 'text');
@@ -291,22 +304,41 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
             $keys = array_keys($components);
             $position = array_search($cid, $keys, TRUE);
             unset($components[$cid]);
+            foreach ($components as &$remaining) {
+              if (($remaining['type'] ?? '') === 'figure' && ($remaining['parent_id'] ?? NULL) === $cid) {
+                unset($remaining['parent_id'], $remaining['placement']);
+              }
+            }
+            unset($remaining);
             $cid = $keys[$position + 1] ?? $keys[$position - 1] ?? '';
             $focus = $cid ? 'component:' . $cid : 'step:' . $sid;
           }
-          elseif ($action === 'component_duplicate' && count($components) < 60 && $total < AuthoringInputGuard::MAX_COMPONENTS) {
-            $copy = $components[$cid];
-            $copy['id'] = static::uuid();
-            $components = static::insertAfter($components, $cid, $copy['id'], $copy);
-            $cid = $copy['id'];
-            $focus = 'component:' . $cid;
+          elseif ($action === 'component_duplicate') {
+            $group = static::componentGroup($components, $cid);
+            if (count($components) + count($group) > 60 || $total + count($group) > AuthoringInputGuard::MAX_COMPONENTS) {
+              $blocked_duplicate = TRUE;
+              $state['actools_action_notice'] = (string) t('Nothing was duplicated. This component and its attached figures would exceed the 60-component step or 120-component lesson limit.');
+            }
+            else {
+              $copies = static::cloneComponents($group, FALSE);
+              $first_copy = array_key_first($copies);
+              $after = $cid;
+              foreach ($copies as $id => $copy) {
+                $components = static::insertAfter($components, $after, $id, $copy);
+                $after = $id;
+              }
+              $cid = $first_copy;
+              $focus = 'component:' . $cid;
+            }
           }
           elseif ($action === 'component_up' || $action === 'component_down') {
             $components = static::move($components, $cid, $action === 'component_up' ? -1 : 1);
           }
         }
         $steps[$sid]['components'] = $components;
-        $steps[$sid]['reviewed'] = FALSE;
+        if (!$blocked_duplicate) {
+          $steps[$sid]['reviewed'] = FALSE;
+        }
       }
     }
     $weight = 0;
@@ -492,6 +524,15 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
             ];
           }
         }
+        if ($component['type'] === 'figure' && array_key_exists('parent_id', $raw) && is_string($raw['parent_id'])) {
+          if ($raw['parent_id'] === '') {
+            unset($component['parent_id'], $component['placement']);
+          }
+          else {
+            $component['parent_id'] = $raw['parent_id'];
+            $component['placement'] = is_string($raw['placement'] ?? NULL) ? $raw['placement'] : ($component['placement'] ?? 'prompt');
+          }
+        }
         if ($component['type'] === 'figure' && isset($raw['fid'])) {
           $fids = is_array($raw['fid']) ? ($raw['fid']['fids'] ?? $raw['fid']) : $raw['fid'];
           $component['fid'] = is_array($fids) ? (int) reset($fids) : (int) $fids;
@@ -533,6 +574,41 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
 
   private static function newComponent(string $type): array {
     return ['id' => static::uuid(), 'type' => $type, 'heading' => '', 'weight' => 1000];
+  }
+
+  /** Parent duplication is atomic with all of its same-step figures. */
+  private static function componentGroup(array $components, string $id): array {
+    $group = [$id => $components[$id]];
+    if (in_array($components[$id]['type'] ?? '', ['example', 'practice'], TRUE)) {
+      foreach ($components as $cid => $component) {
+        if (($component['type'] ?? '') === 'figure' && ($component['parent_id'] ?? NULL) === $id) {
+          $group[$cid] = $component;
+        }
+      }
+    }
+    return $group;
+  }
+
+  /** Rekey a copied group; full-step copies never point to the source step. */
+  private static function cloneComponents(array $components, bool $detach_external = TRUE): array {
+    $ids = [];
+    foreach ($components as $id => $component) {
+      $ids[$id] = static::uuid();
+    }
+    $copies = [];
+    foreach ($components as $id => $component) {
+      $component['id'] = $ids[$id];
+      if (($component['type'] ?? '') === 'figure' && !empty($component['parent_id'])) {
+        if (is_string($component['parent_id']) && isset($ids[$component['parent_id']])) {
+          $component['parent_id'] = $ids[$component['parent_id']];
+        }
+        elseif ($detach_external || !is_string($component['parent_id'])) {
+          unset($component['parent_id'], $component['placement']);
+        }
+      }
+      $copies[$component['id']] = $component;
+    }
+    return $copies;
   }
 
   private static function uuid(): string {
