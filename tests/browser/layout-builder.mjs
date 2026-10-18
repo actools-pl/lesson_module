@@ -57,11 +57,14 @@ export async function runLayoutBuilderRegression({browser, baseURL, moduleRoot, 
         content.append(extra);
         const scientific = document.createElement('section');
         scientific.className = 'actools-component actools-component--table';
-        scientific.innerHTML = '<div class="actools-table-scroll" tabindex="0" role="region" aria-label="Capillary comparison table"><table><caption>Capillary comparison</caption><thead><tr><th>Tube radius (mm)</th><th>Contact angle</th><th>Surface tension (N/m)</th><th>Equilibrium height (mm)</th></tr></thead><tbody><tr><td>0.50</td><td>0 degrees</td><td>0.072</td><td>29.4</td></tr><tr><td>1.00</td><td>60 degrees</td><td>0.072</td><td>7.34</td></tr></tbody></table></div><figure class="actools-figure"><a href="/module/modules/actools_lesson_demo/assets/capillary-rise.png"><img data-fixture-diagram src="/module/modules/actools_lesson_demo/assets/capillary-rise.png" width="1073" height="623" alt="Capillary geometry with a raised meniscus and reservoir reference level"></a><figcaption>Compare the meniscus with the reservoir reference level.</figcaption></figure>';
+        scientific.innerHTML = '<div class="actools-table-scroll" tabindex="0" role="region" aria-label="Capillary comparison table"><table><caption>Capillary comparison</caption><thead><tr><th>Tube radius (mm)</th><th>Contact angle</th><th>Surface tension (N/m)</th><th>Equilibrium height (mm)</th></tr></thead><tbody><tr><td>0.50</td><td>0 degrees</td><td>0.072</td><td>29.4</td></tr><tr><td>1.00</td><td>60 degrees</td><td>0.072</td><td>7.34</td></tr></tbody></table></div><figure class="actools-figure"><a href="/module/modules/actools_lesson_demo/assets/capillary-rise.png"><img data-fixture-diagram src="/module/modules/actools_lesson_demo/assets/capillary-rise.png" width="1800" height="960" alt="Capillary geometry with a raised meniscus and reservoir reference level"></a><figcaption>Compare the meniscus with the reservoir reference level.</figcaption></figure>';
         content.append(scientific);
       }
       shared.querySelectorAll('img').forEach((image) => {
         image.src = '/module/modules/actools_lesson_demo/assets/capillary-rise.png';
+        // The normalized 1.3.0 demo master has new intrinsic dimensions.
+        image.width = 1800;
+        image.height = 960;
       });
       if (enhance) Drupal.attachBehaviors(shared);
       window.scrollTo(0,0);
@@ -125,8 +128,10 @@ export async function runLayoutBuilderRegression({browser, baseURL, moduleRoot, 
   assert.equal((await columns()).length,1);
   assert.equal(await page.locator('.actools-table-scroll').last().evaluate((element) => element.scrollWidth > element.clientWidth),true);
   await page.locator('img[data-fixture-diagram]').evaluate((image) => image.decode());
-  const diagram = await page.locator('img[data-fixture-diagram]').evaluate((image) => ({width:image.getBoundingClientRect().width,height:image.getBoundingClientRect().height,fit:getComputedStyle(image).objectFit}));
-  assert(Math.abs(diagram.width / diagram.height - 1073 / 623) < 0.01);
+  const diagram = await page.locator('img[data-fixture-diagram]').evaluate((image) => ({width:image.getBoundingClientRect().width,height:image.getBoundingClientRect().height,naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,fit:getComputedStyle(image).objectFit}));
+  assert.equal(diagram.naturalWidth,1800);
+  assert.equal(diagram.naturalHeight,960);
+  assert(Math.abs(diagram.width / diagram.height - diagram.naturalWidth / diagram.naturalHeight) < 0.01,'The rendered diagram must preserve its actual intrinsic proportions.');
   assert.equal(diagram.fit,'contain');
   assert.equal(await page.locator('.actools-chapter-nav').evaluate((element) => element.open),false);
   const noJS = await browser.newContext({javaScriptEnabled:false,viewport:{width:320,height:800}});

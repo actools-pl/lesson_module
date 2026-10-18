@@ -1,4 +1,4 @@
-# Shared Layout Builder presentation — Actools Lessons 1.2.0
+# Shared Layout Builder presentation — Actools Lessons 1.3.0
 
 The optional **Actools Lessons — shared layouts** submodule lets site builders arrange supplementary blocks around the complete chapter or lesson reader. It uses Drupal core Layout Builder. Paragraphs is deferred to a later project phase; this release keeps the existing lesson content model.
 

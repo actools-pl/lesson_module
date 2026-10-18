@@ -7,8 +7,10 @@ The lesson module supplies structured authoring and reading. It does not supply 
 | Identity | Purpose | Rule |
 | --- | --- | --- |
 | Source key, e.g. `ST/ch04/problem/4.3` | Identify one manuscript item across repeated preparation | Record it in the migration manifest; never infer it from current row order |
-| Book label, e.g. `Problem 4.3` | Human-readable numbering and references | Retain it in the authored heading/caption independently of route position |
+| Book label, e.g. `Problem 4.3` | Human-readable numbering and references | Retain it in the authored heading/caption, or explicit equation reference label, independently of route position |
 | Drupal step/component UUID | Stable reading links, revisions and progress | Keep the saved UUID when editing or moving; use a new UUID only for an independent duplicate |
+
+Practice can additionally retain a paired `variant_ref` and `variant_version` for a reviewed external question. These do not replace book keys or Drupal UUIDs and do not resolve a live bank. The existing `source` remains the public citation; no new step source-reference column has been introduced.
 
 A future import manifest should record source key, source file path/checksum, lesson UUID, step UUID, component UUID, book label and editorial status. These are migration records, not newly invented module fields. Resolve cross-references through that manifest to actual saved URLs and `#component-<UUID>` anchors. The existing step URL uses its stable UUID query value. Renumbering a book is a separate editorial decision.
 
@@ -36,6 +38,8 @@ The inspected pass-14 source has eight concept sections plus the solved-examples
 One initial flat grouping suggests roughly 91 components across ten steps; this is a mapping estimate, not a completed conversion. Separating 28 practice Try-yourself prompts would raise it to 119, and separating another eight worked-example Try-yourself prompts would raise it to 127. Preserving those prompts inside their parent text/disclosures is an editorial choice, not a reason to silently drop material.
 
 The native builder permits growth up to 120 components per lesson, with 40 steps and 60 components per step. Larger existing/API-seeded content is preserved subject to storage and actual server capacity. Grouping is necessary: one step for each of the 41 problems would exceed the step bound. Keep a machine-counted inventory before seeding a lesson and use the editor's whole-form capacity report.
+
+For the proposed pilot, split the corrected source into the approved nine Core lessons and a separate chapter-practice Resource; keep Extension lessons distinct with prerequisites. The 41-problem chapter inventory need not be forced into the representative Capillary-rise lesson: choose its agreed theory/examples and ten reviewed problems, and map the rest to Capillary arrangements or chapter practice. Large papers remain downloadable Resources until a separately implemented bank is available. The module does not infer this editorial split or import the corrected source.
 
 ## Pilot gate
 

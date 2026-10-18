@@ -1,0 +1,7 @@
+name: 'Actools Lesson input test support'
+type: module
+description: 'Conditional and optional upload controls for native form tests.'
+package: Testing
+core_version_requirement: ^11
+dependencies:
+  - actools_lesson:actools_lesson

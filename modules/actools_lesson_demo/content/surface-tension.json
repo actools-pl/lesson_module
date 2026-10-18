@@ -52,17 +52,17 @@
                 "value": "<p>For a uniform interface, F is the force exerted across a line of length L. The SI unit of surface tension is N m⁻¹.</p>",
                 "format": "actools_lesson_text"
               },
-              "tex": "\\gamma=\\frac{F}{L}",
+              "tex": "S=\\frac{F}{L}",
               "id": "860df03f-6cb8-5ef0-8edc-ae2661805bc8"
             },
             {
               "type": "result",
               "heading": "Soap film: two interfaces",
               "body": {
-                "value": "<p>A thin soap film has two approximately equal liquid–air interfaces. Both pull on the bar, so the total force is F = 2γL when the bar and film geometry match the diagram.</p>",
+                "value": "<p>A thin soap film has two approximately equal liquid–air interfaces. Both pull on the bar, so the total force is F = 2SL when the bar and film geometry match the diagram.</p>",
                 "format": "actools_lesson_text"
               },
-              "tex": "F_{\\mathrm{film}}=2\\gamma L",
+              "tex": "F_{\\mathrm{film}}=2S L",
               "id": "46f99a67-c59e-5be0-9748-b0208f0214bb"
             },
             {
@@ -90,7 +90,7 @@
                 "value": "<p>Move the bar outward slowly while maintaining the relevant conditions. The total new area includes both film surfaces. The mechanical work increases the interfacial free energy in this idealized description.</p>",
                 "format": "actools_lesson_text"
               },
-              "tex": "dW=F\\,dx=2\\gamma L\\,dx=\\gamma\\,dA,\\qquad dA=2L\\,dx",
+              "tex": "dW=F\\,dx=2S L\\,dx=S\\,dA,\\qquad dA=2L\\,dx",
               "id": "413aa8c2-d9d1-5b72-98a5-0a4c35538b96"
             },
             {
@@ -106,7 +106,7 @@
               "type": "practice",
               "heading": "Check your interface count",
               "body": {
-                "value": "<p>A bar of wetted length 5.0 cm is pulled slowly through 2.0 mm against a film with γ = 0.030 N m⁻¹. Find the work done.</p>",
+                "value": "<p>A bar of wetted length 5.0 cm is pulled slowly through 2.0 mm against a film with S = 0.030 N m⁻¹. Find the work done.</p>",
                 "format": "actools_lesson_text"
               },
               "hint": {
@@ -118,7 +118,7 @@
                 "format": "actools_lesson_text"
               },
               "solution": {
-                "value": "<p>W = 2γLx = 2 × 0.030 × 0.050 × 0.0020 J. This equals γ times the total area increase, 2Lx.</p>",
+                "value": "<p>W = 2SLx = 2 × 0.030 × 0.050 × 0.0020 J. This equals S times the total area increase, 2Lx.</p>",
                 "format": "actools_lesson_text"
               },
               "id": "233a5fe4-a431-5af9-91d8-191f401050bf"
@@ -154,7 +154,7 @@
               "type": "figure",
               "heading": "One interface or two?",
               "asset": "drop-bubble-pressure.png",
-              "alt": "A liquid drop with one spherical interface has pressure jump two gamma over R. A thin soap bubble with two interfaces has pressure jump approximately four gamma over R.",
+              "alt": "A liquid drop with one spherical interface has pressure jump two S over R. A thin soap bubble with two interfaces has pressure jump approximately four S over R.",
               "caption": "R denotes radius, not diameter. The two soap-bubble radii are treated as equal in the thin-film approximation.",
               "description": "These formulas compare pressure on opposite sides of the indicated object and assume spherical geometry with uniform surface tension.",
               "id": "17f7a22e-90d8-5c4b-aa90-9ac22f3b72c1"
@@ -175,7 +175,7 @@
                 "value": "<p>For a small reversible expansion, dA = 8πR dR and dV = 4πR² dR. Equating pressure work to the increase in surface free energy gives the spherical pressure jump.</p>",
                 "format": "actools_lesson_text"
               },
-              "tex": "\\Delta p\\,dV=\\gamma\\,dA,\\qquad\\Delta p=\\gamma\\frac{8\\pi R\\,dR}{4\\pi R^2\\,dR}=\\frac{2\\gamma}{R}",
+              "tex": "\\Delta p\\,dV=S\\,dA,\\qquad\\Delta p=S\\frac{8\\pi R\\,dR}{4\\pi R^2\\,dR}=\\frac{2S}{R}",
               "id": "5467d055-b567-5999-bd5e-d0fcb36bff88"
             },
             {
@@ -185,14 +185,14 @@
                 "value": "<p>The inner and outer interfaces each contribute. This expression assumes a film much thinner than R and approximately equal surface tension on both interfaces.</p>",
                 "format": "actools_lesson_text"
               },
-              "tex": "p_{\\mathrm{inside}}-p_{\\mathrm{outside}}\\simeq\\frac{4\\gamma}{R}",
+              "tex": "p_{\\mathrm{inside}}-p_{\\mathrm{outside}}\\simeq\\frac{4S}{R}",
               "id": "daccd14a-8d2e-5f8d-a654-a3c435682dd4"
             },
             {
               "type": "error",
               "heading": "Radius and diameter",
               "body": {
-                "value": "<p>If a problem gives the diameter d, substitute R = d/2. For a liquid drop the pressure jump is 4γ/d, not 2γ/d.</p>",
+                "value": "<p>If a problem gives the diameter d, substitute R = d/2. For a liquid drop the pressure jump is 4S/d, not 2S/d.</p>",
                 "format": "actools_lesson_text"
               },
               "id": "590e221c-9bf2-562f-a117-a21798ea6748"
@@ -210,7 +210,7 @@
               "type": "example",
               "heading": "A small water drop",
               "body": {
-                "value": "<p>For a spherical drop with R = 2.0 mm and γ = 0.072 N m⁻¹, the excess pressure is 2 × 0.072 / 0.0020 = 72 Pa. This is a pressure difference, not the absolute pressure inside.</p>",
+                "value": "<p>For a spherical drop with R = 2.0 mm and S = 0.072 N m⁻¹, the excess pressure is 2 × 0.072 / 0.0020 = 72 Pa. This is a pressure difference, not the absolute pressure inside.</p>",
                 "format": "actools_lesson_text"
               },
               "id": "b11c27de-c6ff-5097-9034-7174d4a6fe30"
@@ -219,7 +219,7 @@
               "type": "practice",
               "heading": "Predict before calculating",
               "body": {
-                "value": "<p>The radius of a liquid drop is halved while γ stays constant. What happens to the excess pressure?</p>",
+                "value": "<p>The radius of a liquid drop is halved while S stays constant. What happens to the excess pressure?</p>",
                 "format": "actools_lesson_text"
               },
               "hint": {
@@ -231,7 +231,7 @@
                 "format": "actools_lesson_text"
               },
               "solution": {
-                "value": "<p>The pressure jump 2γ/R varies inversely with R. This conclusion assumes that the spherical model and constant γ remain valid.</p>",
+                "value": "<p>The pressure jump 2S/R varies inversely with R. This conclusion assumes that the spherical model and constant S remain valid.</p>",
                 "format": "actools_lesson_text"
               },
               "id": "cd6aa58e-d3de-5e5e-be85-9f9dd12ffdac"
@@ -288,7 +288,7 @@
                 "value": "<p>The contact-line length is 2πr. Resolve the surface-tension force vertically and balance it with the weight ρgπr²h. Here r is the internal tube radius, and h is measured relative to the reservoir surface.</p>",
                 "format": "actools_lesson_text"
               },
-              "tex": "2\\pi r\\gamma\\cos\\theta=\\rho g\\pi r^2 h,\\qquad h=\\frac{2\\gamma\\cos\\theta}{\\rho g r}",
+              "tex": "2\\pi rS\\cos\\theta=\\rho g\\pi r^2 h,\\qquad h=\\frac{2S\\cos\\theta}{\\rho g r}",
               "id": "54c12362-788b-5cf5-aa2c-408166746c39"
             },
             {
@@ -322,7 +322,7 @@
               "type": "example",
               "heading": "Water in a clean narrow tube",
               "body": {
-                "value": "<p>For γ = 0.072 N m⁻¹, ρ = 1000 kg m⁻³, g = 9.8 m s⁻², r = 0.50 mm and θ ≈ 0°, the ideal height is about 0.029 m, or 2.9 cm. The numerical estimate depends strongly on the wetting assumption.</p>",
+                "value": "<p>For S = 0.072 N m⁻¹, ρ = 1000 kg m⁻³, g = 9.8 m s⁻², r = 0.50 mm and θ ≈ 0°, the ideal height is about 0.029 m, or 2.9 cm. The numerical estimate depends strongly on the wetting assumption.</p>",
                 "format": "actools_lesson_text"
               },
               "id": "117213d6-e7d2-5454-994f-228a996c1e1b"
@@ -339,7 +339,7 @@
                 "format": "actools_lesson_text"
               },
               "solution": {
-                "value": "<p>At fixed γ, ρ, g and θ, h is inversely proportional to r. This predicts equilibrium height, not how quickly the liquid rises.</p>",
+                "value": "<p>At fixed S, ρ, g and θ, h is inversely proportional to r. This predicts equilibrium height, not how quickly the liquid rises.</p>",
                 "format": "actools_lesson_text"
               },
               "id": "0a5dced6-1b51-57e7-a6e0-0fb9b326afed"
@@ -397,7 +397,7 @@
               "type": "text",
               "heading": "A first look at Marangoni flow",
               "body": {
-                "value": "<p>A surface-tension gradient can produce tangential stress and drive flow along an interface. Temperature or composition differences can create such gradients.</p><p>The earlier static formulas assumed uniform γ. Applying them point by point without a complete flow and stress analysis does not describe the resulting motion.</p>",
+                "value": "<p>A surface-tension gradient can produce tangential stress and drive flow along an interface. Temperature or composition differences can create such gradients.</p><p>The earlier static formulas assumed uniform S. Applying them point by point without a complete flow and stress analysis does not describe the resulting motion.</p>",
                 "format": "actools_lesson_text"
               },
               "id": "430011f2-12d0-5bf1-9284-1b5171a3c058"

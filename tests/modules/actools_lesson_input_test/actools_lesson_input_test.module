@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function actools_lesson_input_test_form_node_form_alter(array &$form, FormStateInterface $form_state): void {
+  if ($form_state->getFormObject()->getEntity()->bundle() !== 'actools_resource') {
+    return;
+  }
+  $mode = \Drupal::state()->get('actools_lesson_input_test.mode');
+  if ($mode === 'conditional') {
+    $condition = [':input[name="actools_input_test[automatic]"]' => ['checked' => TRUE]];
+    $form['actools_input_test'] = ['#type' => 'fieldset', '#tree' => TRUE, '#title' => 'Conditional integration controls'];
+    $form['actools_input_test']['automatic'] = ['#type' => 'checkbox', '#title' => 'Automatic external values', '#default_value' => TRUE];
+    foreach (['disabled', 'enabled', '!enabled'] as $index => $state) {
+      $form['actools_input_test']['alias_' . $index] = [
+        '#type' => 'textfield', '#title' => 'Conditional alias ' . $index,
+        '#default_value' => '/unchanged-alias-' . $index,
+        '#states' => [$state => $state === 'enabled' ? [':input[name="actools_input_test[automatic]"]' => ['checked' => FALSE]] : $condition],
+      ];
+    }
+    $form['actools_input_test']['conditional_group'] = [
+      '#type' => 'fieldset', '#states' => ['disabled' => $condition],
+      'nested_alias' => ['#type' => 'textfield', '#title' => 'Nested conditional alias', '#default_value' => '/nested-alias'],
+    ];
+    // Runs before the guard's root after_build callback. An integration alter
+    // must not make teaching content or the signed inventory optional.
+    $form['#after_build'][] = 'actools_lesson_input_test_alter_owned_states';
+  }
+  if ($mode === 'empty_uploads') {
+    $form['actools_input_test'] = ['#type' => 'fieldset', '#tree' => TRUE, '#title' => 'Optional integration files'];
+    for ($index = 0; $index < 21; $index++) {
+      $form['actools_input_test']['optional_file_' . $index] = [
+        '#type' => 'file', '#title' => 'Optional file ' . $index,
+      ];
+    }
+  }
+}
+
+/** Add conditional states to an owned editor after its children are processed. */
+function actools_lesson_input_test_alter_owned_states(array $form, FormStateInterface $form_state): array {
+  actools_lesson_input_test_owned_states($form);
+  return $form;
+}
+
+/** Apply the fixture only to the actual native teaching editor subtree. */
+function actools_lesson_input_test_owned_states(array &$element): void {
+  if (!empty($element['#actools_editor'])) {
+    $element['#states']['disabled'] = [':input[name="actools_input_test[automatic]"]' => ['checked' => FALSE]];
+    return;
+  }
+  foreach (Element::children($element) as $key) {
+    actools_lesson_input_test_owned_states($element[$key]);
+  }
+}

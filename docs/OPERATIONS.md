@@ -1,40 +1,43 @@
-# Operations and updates — Actools Lessons 1.2.0
+# Operations and updates — Actools Lessons 1.3.0
 
 The Drupal machine name is `actools_lesson`; `lesson_module` is the GitHub repository name. Deploy the repository root as `modules/custom/actools_lesson` inside the actual Drupal document root. See [INSTALLATION.md](INSTALLATION.md) for explicit Drush root/site examples and role setup.
 
 ## Update an installed 1.x site
 
-Version 1.2.0 requires a code replacement and cache rebuild. It introduces no module database schema migration. Preserve the site's database, configuration, uploaded/public files, native revisions and user data. **Do not uninstall/reinstall the module, remove its fields, or reimport the demonstration to perform this update.**
+Version 1.3.0 requires code replacement, database updates and a cache rebuild. Update 11001 adds missing image-style configuration; it introduces no field or table schema change. Preserve the site's database, configuration, uploaded/public files, native revisions and user data. **Do not uninstall/reinstall the module, remove its fields, or reimport the demonstration to perform this update.**
 
 1. Record the current release/commit and local overrides. Back up the database, active/exported configuration, uploaded files and current code using the site's normal recovery procedure. Verify that the backup can be restored. Aegir site Backup excludes shared platform code: retain both the site archive and a separate off-server platform/custom-code backup with its Composer manifest, lockfile and reviewed module commit.
 2. On BOA, follow the [Actools installation procedure](https://github.com/actools-pl/actools_bs5/blob/main/INSTALL.md) and [BOA platform guide](https://github.com/actools-pl/boa/blob/hetzner-drupal11/hetzner/ACTOOLS_BS5.md). Build a new unregistered platform as `o1.ftp`, finish dependency/code work before registration, register the actual `web` document root and wait for Verify. Rehearse migration on a clone. Preserve the reviewed `composer.lock`; do not run Composer as root, update shared dependencies blindly, or pull `main` inside a live platform. Retain Claro for administration. Other managed platforms should use their equivalent supported release process.
-3. Test the reviewed 1.2.0 source on a staging copy with the actual site PHP, database, theme, access modules and moderation configuration.
+3. Test the reviewed 1.3.0 source on a staging copy with the actual site PHP, database, theme, access modules and moderation configuration.
 4. Deploy the complete module directory through the established release process. Retain normal filesystem ownership; the PHP service should not need write access to module code.
-5. Rebuild caches in the intended site's context. In a Composer project with Drush already installed, for example:
+5. Run updates and rebuild caches in the intended site's context. In a Composer project with Drush already installed, for example:
 
    ```sh
    /absolute/path/to/project/vendor/bin/drush --root=/absolute/path/to/project/web --uri=https://site.example.test status
+   /absolute/path/to/project/vendor/bin/drush --root=/absolute/path/to/project/web --uri=https://site.example.test updb -y
    /absolute/path/to/project/vendor/bin/drush --root=/absolute/path/to/project/web --uri=https://site.example.test cr
    ```
 
    Verify `status` before the cache rebuild. Use the platform's approved Drush alias/executable instead where required. A shell inside the Drupal document root does not imply that `vendor/bin/drush` lives there.
 6. Reload open lesson editor forms. Check public content and the latest private drafts before allowing normal editorial work to resume.
 
-The cache rebuild is needed for the 1.2.0 integrity services, form callbacks and figure templates. The bundled mathematical renderer is unchanged. Do not edit generated aggregate files. Follow any additional update/configuration steps required by the site's deployment pipeline; this release itself has no `hook_update_N()` migration to execute.
+Update 11001 creates `actools_lesson_diagram` only if missing: proportional scaling within 1600 × 1600 pixels, no crop and no enlargement. Existing site-defined effects are preserved. Review/export the resulting configuration through the site's deployment process. Cache rebuild discovers the field-list class and updated templates/signatures. The bundled mathematical renderer is unchanged. Follow the platform's approved update/configuration sequence; see [configuration import order](INSTALLATION.md#configuration-import-order).
 
 Enabling the optional Layout Builder add-on is a separate, explicit configuration step. Follow [LAYOUT_BUILDER.md](LAYOUT_BUILDER.md). Replacing code alone does not enable shared layouts or alter existing displays.
 
 ## Staging acceptance on the actual host
 
-Final **1.2.0** native validation passed **132 tests / 2107 assertions** on **Drupal 11.4.10, PHP 8.3.6 and SQLite**, followed by retained browser checks. Unit 8/53, Kernel 73/1136 and Functional 51/918 ran through the unchanged disposable entry point. New cases exercise published ownership, pending adoption, authorized Unpublish, native deletion and associated solution figures. The full installed-Drupal browser-authoring baseline remains 1.0.1; focused newer fixtures have their own scope. PHP 8.4 for this new release, Percona concurrency, BOA/Nginx, the installed theme and CSP require their corresponding hosted/staging acceptance. See [VALIDATION.md](../VALIDATION.md) for evidence and dependency-provisioning limits.
+Final **1.3.0** local validation passed **168 tests / 2741 assertions**, plus nine browser regression groups, on **Drupal 11.4.10, PHP 8.3.6 and SQLite**. Unit 21/82, Kernel 89/1494 and Functional 58/1165 ran together through the shipped disposable entry point without retries. The complete browser stage passed separately after correcting the local browser runtime and stale demo-image fixture dimensions; production/native source stayed unchanged. New native cases exercise conditional inputs, empty upload slots, strict teaching identities/history, paired references, labels and real diagram derivatives. Check Actions for the exact published commit's complete PHP 8.3/8.4 results; BOA/Percona, the full installed theme and production CSP need staging acceptance. See [VALIDATION.md](../VALIDATION.md).
 
 Use a disposable lesson and chapter for the following checks:
 
 - Confirm extension discovery, dependency enablement and the workbench. Test an ordinary author and publisher, not only the site owner. Confirm learners cannot see a private pending draft or its metadata.
+- Exercise an external conditionally disabled field (including the alias widget if Pathauto is installed). Confirm normal save, Preview and builder AJAX work, while incomplete teaching controls are rejected. Empty file controls do not consume `max_file_uploads`; keep actual selected-file counts and combined upload size within PHP limits.
 - Save a draft using CKEditor and structured controls; add, duplicate, remove and reorder content; reopen it; inspect figures and typeset equations. Check a 390-pixel editor and a narrow reader for local scrolling and usable focus.
 - Publish reviewed content, then change it and save a private draft. In a separate anonymous session, confirm the prior public text remains available. Review and publish the replacement, then confirm the public version changes.
 - Check chapter membership, Core/Extension sequencing, optional steps and native historical revision access. If Content Moderation is configured, verify its transitions and permissions remain authoritative.
 - Warm caches as anonymous and as two different learner accounts. Check separate personal read marks/resume, denied node or field access, and ordinary public rendering. Keep user-specific progress responses private through any reverse proxy/CDN.
+- Verify update 11001, uncropped derivatives and original-image links. Check a labelled equation in Guided, Read all and Print; labels are explicit and do not renumber on reorder. Confirm paired practice identifiers persist without fetching bank content.
 - Check the real global header/admin toolbar offsets, explicit light/dark theme choices, print header and full-resolution diagram links. The module supplies its reader, while the site theme retains its global header and branding.
 - Verify that local JavaScript, styles, WOFF2 fonts and mathematics assets are served successfully. Validate the site's CSP against the local MathJax accessibility worker, which uses a `blob:` worker in the exercised configuration. Adjust policy through the site's normal security review rather than disabling it broadly.
 

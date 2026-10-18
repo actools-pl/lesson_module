@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="864pt" height="460.8pt" viewBox="0 0 864 460.8" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-17T22:42:10.111730</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 460.8 
+L 864 460.8 
+L 864 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 55.296 406.656 
+L 808.704 406.656 
+L 808.704 313.344 
+L 55.296 313.344 
+z
+" clip-path="url(#p803af7db71)" style="fill: #d9edf7"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 266.112 313.344 
+L 266.112 119.808 
+Q 324.864 168.192 383.616 119.808 
+L 383.616 313.344 
+z
+" clip-path="url(#p803af7db71)" style="fill: #d9edf7"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 266.112 119.808 
+Q 324.864 168.192 383.616 119.808 
+" clip-path="url(#p803af7db71)" style="fill: none; stroke: #286c81; stroke-width: 2.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 55.296 285.696 
+L 55.296 406.656 
+L 808.704 406.656 
+L 808.704 285.696 
+" clip-path="url(#p803af7db71)" style="fill: none; stroke: #667984; stroke-width: 3; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 266.112 392.832 
+L 266.112 71.424 
+" clip-path="url(#p803af7db71)" style="fill: none; stroke: #667984; stroke-width: 3; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 383.616 392.832 
+L 383.616 71.424 
+" clip-path="url(#p803af7db71)" style="fill: none; stroke: #667984; stroke-width: 3; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_4">
+    <path d="M 65.664 313.344 
+L 749.952 313.344 
+" clip-path="url(#p803af7db71)" style="fill: none; stroke-dasharray: 4.44,1.92; stroke-dashoffset: 0; stroke: #667984; stroke-width: 1.2"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 21px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #193c43" x="58.752" y="43.776" transform="rotate(-0 58.752 43.776)">Capillary rise: wetting liquid</text>
+   </g>
+   <g id="patch_5">
+    <path d="M 329.209239 95.616 
+Q 354.239312 95.616 379.269385 95.616 
+" style="fill: none; stroke: #286c81; stroke-width: 2.1; stroke-linecap: round"/>
+    <path d="M 336.009239 99.016 
+L 329.209239 95.616 
+L 336.009239 92.216 
+" style="fill: none; stroke: #286c81; stroke-width: 2.1; stroke-linecap: round"/>
+    <path d="M 372.469385 92.216 
+L 379.269385 95.616 
+L 372.469385 99.016 
+" style="fill: none; stroke: #286c81; stroke-width: 2.1; stroke-linecap: round"/>
+   </g>
+   <g id="text_2">
+    <!-- $r$ -->
+    <g style="fill: #193c43" transform="translate(348.312 81.792)">
+     <text>
+      <tspan x="0" y="-0.796875" style="font-style: oblique; font-size: 20px; font-family: 'DejaVu Sans'; fill: #193c43">r</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="patch_6">
+    <path d="M 428.544 308.998709 
+Q 428.544 228.672988 428.544 148.347267 
+" style="fill: none; stroke: #286c81; stroke-width: 2.1; stroke-linecap: round"/>
+    <path d="M 431.944 302.198709 
+L 428.544 308.998709 
+L 425.144 302.198709 
+" style="fill: none; stroke: #286c81; stroke-width: 2.1; stroke-linecap: round"/>
+    <path d="M 425.144 155.147267 
+L 428.544 148.347267 
+L 431.944 155.147267 
+" style="fill: none; stroke: #286c81; stroke-width: 2.1; stroke-linecap: round"/>
+   </g>
+   <g id="text_3">
+    <!-- $h$ -->
+    <g style="fill: #193c43" transform="translate(438.912 237.312)">
+     <text>
+      <tspan x="0" y="-0.28125" style="font-style: oblique; font-size: 22px; font-family: 'DejaVu Sans'; fill: #193c43">h</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_4">
+    <!-- $h=\frac{2S\cos\theta}{\rho g r}$ -->
+    <g style="fill: #193c43" transform="translate(518.4 130.176)">
+     <text>
+      <tspan x="0" y="-0.40625" style="font-style: oblique; font-size: 27px; font-family: 'DejaVu Sans'; fill: #193c43">h</tspan>
+      <tspan x="22.372559" y="-0.40625" style="font-size: 27px; font-family: 'DejaVu Sans'; fill: #193c43">=</tspan>
+      <tspan x="50.255859" y="-12.496875" style="font-size: 18.9px; font-family: 'DejaVu Sans'; fill: #193c43">2</tspan>
+      <tspan x="74.277686" y="-12.496875" style="font-size: 18.9px; font-family: 'DejaVu Sans'; fill: #193c43">c</tspan>
+      <tspan x="84.668994" y="-12.496875" style="font-size: 18.9px; font-family: 'DejaVu Sans'; fill: #193c43">o</tspan>
+      <tspan x="96.232324" y="-12.496875" style="font-size: 18.9px; font-family: 'DejaVu Sans'; fill: #193c43">s</tspan>
+      <tspan x="62.280615" y="-12.496875" style="font-style: oblique; font-size: 18.9px; font-family: 'DejaVu Sans'; fill: #193c43">S</tspan>
+      <tspan x="69.255859" y="6.790625" style="font-style: oblique; font-size: 18.9px; font-family: 'DejaVu Sans'; fill: #193c43">ρ</tspan>
+      <tspan x="81.25293" y="6.790625" style="font-style: oblique; font-size: 18.9px; font-family: 'DejaVu Sans'; fill: #193c43">g</tspan>
+      <tspan x="93.25" y="6.790625" style="font-style: oblique; font-size: 18.9px; font-family: 'DejaVu Sans'; fill: #193c43">r</tspan>
+      <tspan x="109.147693" y="-12.496875" style="font-style: oblique; font-size: 18.9px; font-family: 'DejaVu Sans'; fill: #193c43">θ</tspan>
+     </text>
+     <rect x="50.255859" y="-6.484375" width="70.455164" height="1.6875"/>
+    </g>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #193c43" x="518.4" y="199.296" transform="rotate(-0 518.4 199.296)">Static equilibrium</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #193c43" x="518.4" y="231.7824" transform="rotate(-0 518.4 231.7824)">Uniform narrow tube</text>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #193c43" x="518.4" y="264.2688" transform="rotate(-0 518.4 264.2688)">Wide reservoir</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #193c43" x="432" y="443.2896" transform="rotate(-0 432 443.2896)">Schematic: meniscus volume neglected in the elementary balance.</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p803af7db71">
+   <rect x="17.28" y="9.216" width="829.44" height="442.368"/>
+  </clipPath>
+ </defs>
+</svg>

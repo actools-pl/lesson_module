@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\actools_lesson\Plugin\Field\FieldType;
 
 use Drupal\actools_lesson\Service\StepVersionHistory;
+use Drupal\actools_lesson\Service\TeachingContentComparison;
 use Drupal\Core\Field\Attribute\FieldType;
 use Drupal\Core\Field\FieldItemBase;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -22,6 +23,7 @@ use Drupal\node\NodeInterface;
   description: new TranslatableMarkup('A stable learning step with structured scientific components.'),
   default_widget: 'actools_lesson_step_builder',
   default_formatter: 'actools_lesson_step_summary',
+  list_class: LessonStepItemList::class,
 )]
 final class LessonStepItem extends FieldItemBase {
 
@@ -78,7 +80,6 @@ final class LessonStepItem extends FieldItemBase {
 
   public function preSave(): void {
     parent::preSave();
-    $this->prepareReintroducedVersion();
     foreach ($this->figureIds() as $fid) {
       if (($file = File::load($fid)) && str_starts_with((string) $file->getMimeType(), 'image/')) {
         if ($file->isTemporary()) {
@@ -111,63 +112,9 @@ final class LessonStepItem extends FieldItemBase {
   }
 
   /**
-   * Reintroducing a removed UUID cannot reuse an earlier reading identity.
-   *
-   * This only allocates automatically for an item absent from its immutable
-   * stored source revision. A modified historical source gets no exemption
-   * from supplying a newer version for changed or reintroduced content.
-   */
-  private function prepareReintroducedVersion(): void {
-    $entity = $this->getEntity();
-    $field = $this->getFieldDefinition()->getName();
-    if (!$entity instanceof NodeInterface || $entity->isNew()
-      || $field !== 'field_actools_lesson_steps' || !$entity->getLoadedRevisionId()
-      || (int) $this->content_version < 1) {
-      return;
-    }
-    $storage = \Drupal::entityTypeManager()->getStorage('node');
-    $source = $storage->loadRevisionUnchanged($entity->getLoadedRevisionId());
-    $langcode = $entity->language()->getId();
-    if (!$source || !$source->hasTranslation($langcode)) {
-      return;
-    }
-    $source = $source->getTranslation($langcode);
-    $id = (string) $this->step_id;
-    $old = NULL;
-    foreach ($source->get($field)->getValue() as $row) {
-      if ($row['step_id'] === $id) {
-        $old = $row;
-        break;
-      }
-    }
-    $historical_source = (int) $entity->getLoadedRevisionId() !== (int) $storage->getLatestRevisionId($entity->id());
-    if ($old && !$historical_source) {
-      return;
-    }
-    $maximum = StepVersionHistory::maximumVersions($entity, $field, [$id])[$id] ?? 0;
-    if (!$old) {
-      if ($maximum > 0) {
-        $this->content_version = max((int) $this->content_version, $maximum + 1);
-      }
-      return;
-    }
-    $current = $storage->loadUnchanged($entity->id());
-    $present = FALSE;
-    if ($current && $current->hasTranslation($langcode)) {
-      foreach ($current->getTranslation($langcode)->get($field)->getValue() as $row) {
-        $present = $present || $row['step_id'] === $id;
-      }
-    }
-    $changed = json_decode((string) $old['components'], TRUE) != json_decode((string) $this->components, TRUE);
-    if ((!$present || $changed) && (int) $this->content_version <= $maximum) {
-      throw new \InvalidArgumentException('Changed or reintroduced teaching content requires a newer content version than its retained history.');
-    }
-  }
-
-  /**
    * Restoring immutable stored history creates a new content-version identity.
    *
-   * Only a byte-equivalent historical step set qualifies. Modified source
+   * Only an equivalent historical step set qualifies. Modified source
    * objects and ordinary writes still have to satisfy the version constraint.
    */
   public static function prepareHistoricalRestore(NodeInterface $revision, NodeInterface $source): void {
@@ -191,7 +138,8 @@ final class LessonStepItem extends FieldItemBase {
     $historical = $historical->getTranslation($langcode);
     $current = $current->getTranslation($langcode);
     $rows = $historical->get($field)->getValue();
-    if ($source->get($field)->getValue() != $rows || $revision->get($field)->getValue() != $rows) {
+    if (!self::sameStoredSteps($source->get($field)->getValue(), $rows)
+      || !self::sameStoredSteps($revision->get($field)->getValue(), $rows)) {
       return;
     }
     $current_steps = [];
@@ -201,13 +149,37 @@ final class LessonStepItem extends FieldItemBase {
     $maximums = StepVersionHistory::maximumVersions($revision, $field, array_column($rows, 'step_id'));
     foreach ($rows as &$row) {
       $now = $current_steps[$row['step_id']] ?? NULL;
-      $same_content = $now && json_decode((string) $now['components'], TRUE) == json_decode((string) $row['components'], TRUE);
+      $same_content = $now && TeachingContentComparison::same((string) $now['components'], (string) $row['components']);
       $row['content_version'] = $same_content
         ? (int) $now['content_version']
         : max((int) $row['content_version'], $maximums[$row['step_id']] ?? 0) + 1;
     }
     unset($row);
     $revision->set($field, $rows);
+  }
+
+  /** Normalizes only native SQL columns; teaching JSON retains strict types. */
+  private static function sameStoredSteps(array $first, array $second): bool {
+    if (array_keys($first) !== array_keys($second)) {
+      return FALSE;
+    }
+    foreach ($first as $delta => $row) {
+      $other = $second[$delta];
+      foreach (['step_id', 'title'] as $property) {
+        if ((string) ($row[$property] ?? '') !== (string) ($other[$property] ?? '')) {
+          return FALSE;
+        }
+      }
+      foreach (['optional', 'reviewed', 'content_version'] as $property) {
+        if ((int) ($row[$property] ?? 0) !== (int) ($other[$property] ?? 0)) {
+          return FALSE;
+        }
+      }
+      if (!TeachingContentComparison::same((string) ($row['components'] ?? ''), (string) ($other['components'] ?? ''))) {
+        return FALSE;
+      }
+    }
+    return TRUE;
   }
 
 }

@@ -19,6 +19,34 @@ function actools_lesson_schema(): array {
 /** Implements hook_install(). */
 function actools_lesson_install(): void {
   \Drupal\actools_lesson\StructureInstaller::install();
+  _actools_lesson_ensure_diagram_style();
+}
+
+/**
+ * Adds the bounded diagram derivative for existing lesson sites.
+ */
+function actools_lesson_update_11001(): void {
+  _actools_lesson_ensure_diagram_style();
+}
+
+/**
+ * Creates a non-cropping default without changing site-owned image styles.
+ */
+function _actools_lesson_ensure_diagram_style(): void {
+  if (\Drupal\image\Entity\ImageStyle::load('actools_lesson_diagram')) {
+    return;
+  }
+  $style = \Drupal\image\Entity\ImageStyle::create([
+    'name' => 'actools_lesson_diagram',
+    'label' => 'Actools lesson diagram',
+    'dependencies' => ['enforced' => ['module' => ['actools_lesson']]],
+  ]);
+  $style->addImageEffect([
+    'id' => 'image_scale',
+    'weight' => 0,
+    'data' => ['width' => 1600, 'height' => 1600, 'upscale' => FALSE],
+  ]);
+  $style->save();
 }
 
 /** Implements hook_uninstall(). */

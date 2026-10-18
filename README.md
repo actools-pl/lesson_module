@@ -10,6 +10,7 @@ The module supplies the lesson experience. Your Drupal theme continues to supply
 - [Lesson authoring and publication](docs/EDITOR_GUIDE.md)
 - [Actools BS5 integration](docs/THEME_INTEGRATION.md)
 - [Optional shared Layout Builder presentation](docs/LAYOUT_BUILDER.md)
+- [1.3.0 review corrections and upgrade](docs/UPGRADE_1_3_0.md)
 - [1.2.0 integrity and figure-placement corrections](docs/UPGRADE_1_2_0.md)
 - [Manuscript identity and asset mapping](docs/CONTENT_MAPPING.md)
 - [Updates, backups and troubleshooting](docs/OPERATIONS.md)
@@ -17,13 +18,13 @@ The module supplies the lesson experience. Your Drupal theme continues to supply
 - [Tests](tests/README.md) and [executed validation](VALIDATION.md)
 - [Necessary enhancements review](docs/SECOND_REVIEW.md)
 
-See [the 1.2.0 corrections](docs/UPGRADE_1_2_0.md) for published ownership, pending adoption and figures inside solutions. See [the 1.0.3 corrective-upgrade notes](docs/UPGRADE_1_0_3.md) for the independent review findings and their fixes.
+See [the 1.3.0 changes](docs/UPGRADE_1_3_0.md) for conditional form compatibility, teaching-version corrections, equation labels and diagram derivatives. See [the 1.2.0 corrections](docs/UPGRADE_1_2_0.md) for published ownership, pending adoption and figures inside solutions. See [the 1.0.3 corrective-upgrade notes](docs/UPGRADE_1_0_3.md) for the independent review findings and their fixes.
 
 ## Requirements
 
 - Drupal **11.3 or later within Drupal 11**, PHP **8.3+**. Tested versions and limits are recorded in [VALIDATION.md](VALIDATION.md).
 - Core Node, Field, Text, Filter, CKEditor 5, Options, File, Image, User and Taxonomy modules; these dependencies are declared and enabled by Drupal.
-- A writable public file directory for teaching diagrams. Full native-editor capacity needs `max_input_vars=4096`, `post_max_size=128M` and `upload_max_filesize=20M`; upload-count limits must cover the actual pending file controls. The form checks its complete input budget and blocks unsafe submissions. See [server capacity](docs/UPGRADE_1_0_3.md#authoring-capacity).
+- A writable public file directory for teaching diagrams. Full native-editor capacity needs `max_input_vars=4096`, `post_max_size=128M` and `upload_max_filesize=20M`; upload-count limits apply to files actually selected in one request, not empty upload controls. The form checks its complete input budget and blocks unsafe submissions. See [server capacity](docs/UPGRADE_1_0_3.md#authoring-capacity).
 - JavaScript enables mathematics typesetting and small interface enhancements. Reading, navigation, authoring actions and account progress also work without JavaScript. TeX source remains visible when typesetting is unavailable.
 
 The base module requires no Paragraphs, Layout Builder, Bootstrap, React, remote CDN, account service or extra Composer runtime package. Optional shared presentation uses Drupal core Layout Builder; Paragraphs is deferred to a later project phase. MathJax and its fonts are included locally with their upstream licenses.
@@ -60,9 +61,11 @@ A storage conflict stops installation with an explanation. Resolve it through a 
 
 ## Upgrade from 1.x
 
-Replace the module directory with this 1.2.0 release and rebuild Drupal caches (`vendor/bin/drush cr`). Preserve the site's database and public files. No module uninstall/reinstall or database schema migration is required. Reload any open lesson editor forms after updating.
+Replace the module directory with this 1.3.0 release, run database updates (`vendor/bin/drush updb -y`) and rebuild caches (`vendor/bin/drush cr`) in the intended site context. Update 11001 creates the missing noncropping diagram image style; a same-name site style is preserved. No field/table schema migration or module reinstall is required. Reload open editor forms because revision signatures have changed. Follow [UPGRADE_1_3_0.md](docs/UPGRADE_1_3_0.md) and the platform deployment procedure.
 
 Version 1.0.2 adds a scoped integration adapter for the current `actools_bs5` theme and keeps compatibility with its proposed header contract. See [the integration guide](docs/THEME_INTEGRATION.md) for the exact theme snapshot and validation scope.
+
+Version 1.3.0 fixes conditional-input and empty-upload admission, compares teaching JSON without numeric-string coercion, batches retained-history reads, validates figure-only file references and strengthens snapshot signing. Optional equation labels and paired practice variant identifiers use the existing component model. New demo imports use S notation throughout; existing content is preserved.
 
 Version 1.2.0 adds guarded ownership transitions, an authorized Unpublish lesson action and figure placement inside examples/practice disclosures. See [the correction guide](docs/UPGRADE_1_2_0.md). The update preserves saved steps, UUIDs, revisions, files and account progress. It changes authoring actions, reader presentation and private draft handling. Existing imported demonstration text is left intact; the cleaner sample introduction applies to new demo imports.
 

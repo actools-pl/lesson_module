@@ -19,7 +19,7 @@ use Symfony\Component\DomCrawler\Crawler;
 #[RunTestsInSeparateProcesses]
 final class AuthoringInputSafetyTest extends BrowserTestBase {
 
-  protected static $modules = ['actools_lesson'];
+  protected static $modules = ['actools_lesson', 'actools_lesson_input_test'];
   protected $defaultTheme = 'stark';
 
   protected function setUp(): void {
@@ -112,9 +112,10 @@ final class AuthoringInputSafetyTest extends BrowserTestBase {
     $this->client()->request('POST', $form->getUri(), $values);
     $this->assertSession()->statusCodeEquals(400);
     $this->assertSame($revision, $this->latest($node)->getRevisionId());
-    // An empty/discarded PHP POST cannot be treated as a new empty editor.
+    // A POST that does not submit this form only builds it. It cannot save
+    // empty teaching content; oversized discarded bodies are tested separately.
     $this->client()->request('POST', $form->getUri(), []);
-    $this->assertSession()->statusCodeEquals(400);
+    $this->assertSession()->statusCodeEquals(200);
     $this->assertSame($before, $this->latest($node)->get('field_actools_lesson_steps')->getValue());
     // Exercise PHP's real parser limit, rather than only removing controls.
     $this->drupalGet($node->toUrl('edit-form'));
@@ -308,28 +309,131 @@ final class AuthoringInputSafetyTest extends BrowserTestBase {
     $this->assertCount(20, json_decode($this->latest($node)->get('field_actools_lesson_steps')->first()->components, TRUE));
   }
 
-  public function testPotentialUploadsAboveServerCountCannotBeSubmitted(): void {
-    $maximum = (int) ini_get('max_file_uploads');
-    if ($maximum >= 60) {
-      $this->markTestSkipped('Run this upload-count admission case with max_file_uploads below 60, such as the PHP default 20.');
-    }
+  public function testEmptyFigureControlsDoNotBlockNativeOrAjaxActions(): void {
     $node = $this->fixture(1, 1);
     $before = $node->getRevisionId();
     $this->drupalGet($node->toUrl('edit-form'));
-    // Build unsaved upload controls through supported limited-validation
-    // actions; invalid missing-image data must never be seeded into storage.
-    for ($i = 0; $i <= $maximum; $i++) {
+    // Empty figure slots are a legitimate unsaved builder state. Missing images
+    // still need normal field validation; they must not trigger technical 400s.
+    for ($i = 0; $i < 21; $i++) {
       $this->getSession()->getPage()->selectFieldOption('Teaching component', 'figure');
       $this->getSession()->getPage()->pressButton('Add component');
       $this->assertSession()->statusCodeEquals(200);
     }
-    $this->assertSession()->pageTextContains('This complete lesson form exceeds a server limit');
-    $this->assertTrue($this->getSession()->getPage()->findButton('Save draft')->hasAttribute('disabled'));
-    $form = $this->client()->getCrawler()->filter('form')->form();
-    $this->assertSame($maximum + 1, $this->schema($form->getPhpValues())['uploads']);
+    $this->assertSession()->pageTextNotContains('This complete lesson form exceeds a server limit');
+    $this->assertFalse($this->getSession()->getPage()->findButton('Save draft')->hasAttribute('disabled'));
+    $this->assertCount(21, $this->getSession()->getPage()->findAll('css', '.actools-author input[type=file]'));
+    $crawler = $this->client()->getCrawler();
+    $form = $crawler->selectButton('Save draft')->form();
+    $this->assertSame(21, $this->schema($form->getPhpValues())['uploads']);
     $this->client()->request('POST', $form->getUri(), $form->getPhpValues());
-    $this->assertSession()->statusCodeEquals(400);
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->pageTextContains('field is required');
     $this->assertSame($before, $this->latest($node)->getRevisionId());
+    $html = $this->client()->getResponse()->getContent();
+    $button = $this->client()->getCrawler()->selectButton('Remove component')->eq(1);
+    $form = $button->form();
+    $commands = $this->ajax($form->getUri(), $form->getPhpValues(), $button->attr('name'));
+    $html = $this->applyCommands($html, $commands);
+    $after = new Crawler($html, $form->getUri());
+    $this->assertCount(20, $after->filter('.actools-author input[type=file]'));
+    $this->assertSame(20, $this->schema($after->selectButton('Save draft')->form()->getPhpValues())['uploads']);
+    $this->assertSame($before, $this->latest($node)->getRevisionId());
+  }
+
+  public function testMoreThanTwentyEmptyOptionalFileControlsAllowRealSaveAndAjax(): void {
+    $this->container->get('state')->set('actools_lesson_input_test.mode', 'empty_uploads');
+    $node = $this->fixture(1, 1);
+    $this->drupalGet($node->toUrl('edit-form'));
+    $crawler = $this->client()->getCrawler();
+    $this->assertCount(21, $crawler->filter('input[type=file]'));
+    $form = $crawler->selectButton('Save draft')->form();
+    $this->assertSame(21, $this->schema($form->getPhpValues())['uploads']);
+    $values = $form->getPhpValues();
+    $sid = array_key_first($values['field_actools_lesson_steps']['steps']);
+    $cid = array_key_first($values['field_actools_lesson_steps']['steps'][$sid]['components']);
+    $values['field_actools_lesson_steps']['steps'][$sid]['components'][$cid]['body']['value'] = 'Saved with twenty-one empty upload controls.';
+    $this->client()->request('POST', $form->getUri(), $values);
+    $this->assertSession()->statusCodeEquals(200);
+    $parts = json_decode($this->latest($node)->get('field_actools_lesson_steps')->first()->components, TRUE);
+    $this->assertSame('Saved with twenty-one empty upload controls.', $parts[0]['body']['value']);
+    $this->drupalGet($node->toUrl('edit-form'));
+    $html = $this->client()->getResponse()->getContent();
+    $button = $this->client()->getCrawler()->selectButton('Add component')->first();
+    $form = $button->form();
+    $commands = $this->ajax($form->getUri(), $form->getPhpValues(), $button->attr('name'));
+    $html = $this->applyCommands($html, $commands);
+    $after = (new Crawler($html, $form->getUri()))->selectButton('Save draft')->form();
+    $this->assertSame(21, $this->schema($after->getPhpValues())['uploads']);
+    $values = $after->getPhpValues();
+    $cid = array_key_last($values['field_actools_lesson_steps']['steps'][$sid]['components']);
+    $values['field_actools_lesson_steps']['steps'][$sid]['components'][$cid]['body']['value'] = 'AJAX teaching content survives empty uploads.';
+    $this->client()->request('POST', $after->getUri(), $values);
+    $this->assertSession()->statusCodeEquals(200);
+    $parts = json_decode($this->latest($node)->get('field_actools_lesson_steps')->first()->components, TRUE);
+    $this->assertCount(2, $parts);
+    $this->assertSame('AJAX teaching content survives empty uploads.', $parts[1]['body']['value']);
+  }
+
+  /** Simulate the browser omitting controls disabled by Drupal states. */
+  private function omitConditionalControls(array $values): array {
+    unset($values['actools_input_test']['alias_0'], $values['actools_input_test']['alias_1'], $values['actools_input_test']['alias_2'], $values['actools_input_test']['conditional_group']['nested_alias']);
+    return $values;
+  }
+
+  public function testConditionalExternalControlsCanBeOmittedWhileTeachingInputsStayProtected(): void {
+    $this->container->get('state')->set('actools_lesson_input_test.mode', 'conditional');
+    $node = $this->fixture(1, 1);
+    $this->drupalGet($node->toUrl('edit-form'));
+    $form = $this->client()->getCrawler()->selectButton('Save draft')->form();
+    $schema = $this->schema($form->getPhpValues());
+    foreach ($schema['required'] as $path) {
+      $this->assertNotSame('actools_input_test', $path[0], 'Only the checkbox remains, and it is not a required scalar.');
+    }
+    $this->assertNotEmpty($schema['bindings']);
+    $values = $this->omitConditionalControls($form->getPhpValues());
+    $sid = array_key_first($values['field_actools_lesson_steps']['steps']);
+    $cid = array_key_first($values['field_actools_lesson_steps']['steps'][$sid]['components']);
+    $values['field_actools_lesson_steps']['steps'][$sid]['components'][$cid]['body']['value'] = 'Saved while external aliases are disabled.';
+    $this->client()->request('POST', $form->getUri(), $values);
+    $this->assertSession()->statusCodeEquals(200);
+    $parts = json_decode($this->latest($node)->get('field_actools_lesson_steps')->first()->components, TRUE);
+    $this->assertSame('Saved while external aliases are disabled.', $parts[0]['body']['value']);
+    $this->drupalGet($node->toUrl('edit-form'));
+    $html = $this->client()->getResponse()->getContent();
+    $button = $this->client()->getCrawler()->selectButton('Add component')->first();
+    $form = $button->form();
+    $commands = $this->ajax($form->getUri(), $this->omitConditionalControls($form->getPhpValues()), $button->attr('name'));
+    $html = $this->applyCommands($html, $commands);
+    $after = (new Crawler($html, $form->getUri()))->selectButton('Save draft')->form();
+    $values = $this->omitConditionalControls($after->getPhpValues());
+    $cid = array_key_last($values['field_actools_lesson_steps']['steps'][$sid]['components']);
+    $values['field_actools_lesson_steps']['steps'][$sid]['components'][$cid]['body']['value'] = 'Conditional AJAX content survives.';
+    $this->client()->request('POST', $after->getUri(), $values);
+    $this->assertSession()->statusCodeEquals(200);
+    $parts = json_decode($this->latest($node)->get('field_actools_lesson_steps')->first()->components, TRUE);
+    $this->assertCount(2, $parts);
+    $this->assertSame('Conditional AJAX content survives.', $parts[1]['body']['value']);
+    $before = $this->latest($node)->getRevisionId();
+    $this->drupalGet($node->toUrl('edit-form'));
+    $form = $this->client()->getCrawler()->selectButton('Save draft')->form();
+    $values = $this->omitConditionalControls($form->getPhpValues());
+    unset($values['field_actools_lesson_steps']['steps'][$sid]['components'][$cid]['body']['value']);
+    $this->client()->request('POST', $form->getUri(), $values);
+    $this->assertSession()->statusCodeEquals(400, 'Owned teaching text is mandatory even under injected editor states.');
+    $this->assertSame($before, $this->latest($node)->getRevisionId());
+  }
+
+  public function testPostForAnotherFormOnlyBuildsLessonEditor(): void {
+    $node = $this->fixture(1, 1);
+    $persisted = $this->latest($node);
+    $before = $persisted->get('field_actools_lesson_steps')->getValue();
+    $revision = $persisted->getRevisionId();
+    $this->client()->request('POST', $node->toUrl('edit-form')->setAbsolute()->toString(), ['form_id' => 'unrelated_form', 'other_value' => 'unrelated']);
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->buttonExists('Save draft');
+    $this->assertSame($revision, $this->latest($node)->getRevisionId());
+    $this->assertSame($before, $this->latest($node)->get('field_actools_lesson_steps')->getValue());
   }
 
   public function testDirectNumericStepAndComponentOrdering(): void {

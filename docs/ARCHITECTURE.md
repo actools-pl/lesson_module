@@ -30,6 +30,12 @@ The installer preflights existing storage before mutation, creates missing compa
 
 The custom `actools_lesson_step` field stores a stable `step_id`, title, optional flag, editorial reviewed flag, content version and a bounded JSON array of teaching components. Every component has a stable UUID and one of eight semantic types. JSON is an internal storage representation; the field widget is a structured Form API builder.
 
+Teaching-content equality canonicalizes JSON object-key order while preserving scalar types and list order. Numeric TeX string changes therefore require a new content version and review; equivalent JSON serialization does not. Retained-history preparation is batched once per field-list save with fresh reads, rather than once per step.
+
+For a historical source, retained-history checks compare both its immutable teaching and current default teaching/version. Modifying metadata on an older private revision cannot reuse an obsolete reading identity over newer public content. An equivalent immutable native restore still allocates its fresh version automatically.
+
+Equation components may carry an explicit plain-text `equation_number`. Practice alone may carry paired `variant_ref`/`variant_version` strings. These are optional properties in existing JSON, with no field/table schema change. Non-figure components may not carry `fid`.
+
 An ordinary figure may optionally carry `parent_id` and `placement` to associate it with an example/practice in the same step. These remain flat components, not child entities: figures keep their UUID, file usage and normal limits. Rendering groups valid associations into prompt/hint/answer/solution regions; invalid stored associations fall back to standalone figures, while new writes are validated strictly. Cloning remaps associations and parent removal detaches figures without deleting their content.
 
 A native node revision owns the whole document atomically. There are no independently published child components and no duplicated manuscript for the continuous/print view. The main reader, continuous mode and print mode select the same document and render it differently.

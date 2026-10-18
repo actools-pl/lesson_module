@@ -1,101 +1,51 @@
-# Validation — Actools Lessons 1.2.0
+# Validation — Actools Lessons 1.3.0
 
-The frozen 1.2.0 source passed the shipped `tests/run-ci.sh all` entry point on 18 October 2026 in an isolated disposable Drupal project. All prior regressions and the new ownership, adoption, unpublication and figure-placement cases ran together. Full installed-Drupal Chromium authoring remains the earlier 1.0.1 baseline; retained newer browser fixtures are scoped below.
+The 1.3.0 candidate passed all native stages of the shipped `tests/run-ci.sh all` entry point on 18 October 2026, then the complete browser stage through `tests/run-ci.sh browser`. Production source, assets and native tests stayed frozen. The browser fixture's dimensions were corrected for the rebuilt demo image before its final frozen run; release documentation and the source manifest were finalized afterwards.
 
-## Final automated results
+## Final native results
 
 | Suite | Tests | Assertions | Result |
 | --- | ---: | ---: | --- |
-| Unit | 8 | 53 | Passed |
-| Drupal Kernel | 73 | 1136 | Passed |
-| Drupal Functional, native forms and real AJAX requests | 51 | 918 | Passed |
-| **Total** | **132** | **2107** | **Passed** |
+| Unit | 21 | 82 | Passed |
+| Drupal Kernel | 89 | 1494 | Passed |
+| Drupal Functional, native forms and real AJAX | 58 | 1165 | Passed |
+| **Total** | **168** | **2741** | **Passed** |
 
-All native tests passed with zero failures, errors or skipped cases. JUnit aggregate counts matched individual test cases. The final complete entry-point run used no automatic retries and completed the retained browser suite with zero page errors. Every Functional file received its own server and SQLite database; the base-site settings stayed fixed.
+Zero native failures, errors or skips. JUnit aggregate counts matched individual cases; every Functional file ran. Native stages ran once without retries. The final browser run passed all nine regression groups with zero page errors. Earlier browser runtime/fixture failures are retained separately and are not counted as passes. Functional files had separate servers and SQLite database paths under `/tmp`; no other native test tasks ran concurrently.
 
-The runtime uses retained matching core/core-dev 11.4.10 dependencies copied into a separate project, a newly installed minimal SQLite base, PHP 8.3.6, PHPUnit 11.5.57, Drush 13.8.0 and Playwright 1.62.1. This is not a fresh local Composer/npm install. A missing installed-package metadata entry for the executable BrowserKit driver was independently resolved by matching all five copied files to the locked upstream v2.3.0 source reference `d361516cba6e684bdc4518b9c044edc77f249e36`.
+## Environment and provisioning
 
-PHP startup limits were `max_input_vars=4096`, `post_max_size=128M`, `upload_max_filesize=20M` and the default 20-upload count. Both the common runner and isolated children use the inherited scan configuration. Deliberate parser-truncation warnings are logged with display disabled. These limits do not certify arbitrary larger forms or full mixed-editor performance.
+The disposable minimal-profile site used fresh Composer-installed Drupal core/core-dev 11.4.10, Drush 13.8.0 and PHPUnit 11.5.57, with PHP 8.3.6, SQLite 3.45.1 and Composer 2.10.3. Dependencies were installed through the shipped bootstrap, without copying a prior vendor tree. The passing local browser run used Playwright 1.62.1 from the available global package and transient serverless Chromium 153.0.8010.0. This was not a fresh local `npm ci`; the hosted workflow performs its own pinned install. Browser runtime packages are not module dependencies.
 
-Focused development exposed and corrected two native adoption lifecycle defects before this final run: a stale ordinary POST initially reached a technical input-budget rejection instead of a recoverable reload message, and a saved adoption draft initially redirected to a preview denied against its still-unmanaged default. Other focused fixture corrections concerned a helper-name collision, exact Save button selection and Drupal's disabled-button fallback; those attempts are not counted as final passes.
+The main runner and isolated PHP children used the runtime's PHPRC startup configuration: `max_input_vars=4096`, `post_max_size=128M`, `upload_max_filesize=20M`, `memory_limit=768M`, errors logged with display disabled. Empty upload controls are not treated as actual uploaded files. No module runtime dependency or MathJax/font bundle was changed.
 
-First-party PHP, JavaScript/MJS and shell syntax, Composer metadata, Twig syntax and local Markdown targets passed. The workflow is byte-identical to the already exercised published 1.1.0 workflow; local actionlint was not rerun. Both PHP 8.3/8.4 jobs passed for 1.1.0. Hosted execution of this new commit had not occurred when this record was prepared; check Actions for the exact published 1.2.0 commit.
+First-party PHP, JavaScript/MJS, shell and Python syntax, Composer metadata, Twig grammar and local Markdown file targets passed. Twig grammar checks register Drupal symbol names; native render tests provide actual rendering coverage. The workflow is byte-identical to the published 1.2.0 workflow; local actionlint was not rerun. Its new 1.3.0 hosted commit had not yet run at preparation: check Actions for the exact published SHA. Both PHP jobs passed for published 1.2.0.
 
-## Verified environment
+## New regression coverage
 
-| Component | Actual version |
-| --- | --- |
-| Drupal | 11.4.10 |
-| PHP | 8.3.6 |
-| Database | SQLite |
-| PHPUnit | 11.5.57 |
-| Drush | 13.8.0 |
-| Browser used for baseline UI and new regressions | Chromium 153.0.8010.0 through Playwright |
-| Local mathematical renderer and font package | MathJax 4.1.3 / New Computer Modern 4.1.3 |
+- Conditional external scalar controls and disabled ancestor groups, including the Form API states pattern used by automatic-alias widgets; owned teaching controls and signed inventories remain mandatory. This is not an installed Pathauto acceptance test.
+- More than 20 empty native/external upload controls, save/reopen and actual builder AJAX; retained real-parser truncation, omitted first/middle/last controls, stale inventories and discarded oversized-body protection; wrong-form POSTs without a save.
+- Strict scalar teaching changes versus canonical object-key equivalence; native review reset, publication and learner revisit; removed/reintroduced steps and formerly-default/nondefault native historical restore. A reproduced older-private-revision identity bypass is rejected, while immutable private restores receive a fresh version.
+- Retained-history source loading once for 40 sibling steps, with fresh checks on a later operation of the same object; no permanent entity memoization.
+- Figure-only file identities, paired practice reference validation, exact native save/reopen/copy/clear, empty legacy metadata no-op, context-bound revision signatures and safely rejected older signatures.
+- Equation labels rendered as literal text with accessible associations, retained UUIDs and consistent guided/continuous/Print output after reorder.
+- Real diagram-style install/update, existing operator-style preservation, GD derivative dimensions without crop/upscale, original-file checksum/link retention and missing-style cache fallback.
 
-For the 1.0.1 baseline, the main module and optional demo were enabled on a fresh minimal-profile installation. The supplied CKEditor 5 configuration validated with zero typed-config violations. Cold and warm checks of eight demo/canonical/reader routes produced 16 HTTP 200 responses. A read-only database integrity check after the full author workflow returned `ok`.
+Earlier focused development failures remain separate from this final pass. One history-query test used a nonexistent logger-stop helper and was corrected. Initial input fixtures compared pre-hydration integer columns with stored string columns; the comparison was corrected to use the saved baseline. Several focused runs using workspace database paths failed with physical SQLite schema errors, including before lesson editing; the identical full class and exact runner passed after only the results/database location changed to `/tmp`. The underlying corruption cause was not proven. The final complete run used `/tmp` alone. The independent historical-private-source probe first reproduced an unsafe version reuse; its implementation was then corrected and regression-tested.
 
-## What the automated tests exercise
+## Retained browser regressions and fixture correction
 
-- Clean and idempotent structure setup, preservation of compatible existing fields/displays, and rejection of conflicting field types, reference targets and taxonomy storage.
-- Managed content versus legacy resources; one canonical chapter owner; ordered paths; duplicate and stale ownership rejection; the database uniqueness guard; non-default chapter revisions leaving the public route unchanged.
-- Node and displayed-field access, restricted titles, denied navigation cache metadata, access revoke/reallow after warm rendering and separation of Core/Extension navigation.
-- Guided, Read all and print parity; safe filtered text; introduction rendering; invalid query shapes; obsolete stable step links; arbitrary revision query isolation; exact native historical revision viewing with proper access.
-- Canonical warm-cache mode/step contexts and native render metadata, including Drupal's fixed render-cache identity.
-- Structured native authoring actions and persisted UUIDs; duplicate/move/remove/save/reopen behavior; signed identity controls; formatted-text permissions; image validity, temporary upload ownership and historical file usage.
-- Teaching-content version checks, title-only edits, exact historical restore through Drupal's native `createRevision()` API, and rejection of modified historical objects that attempt to bypass the ordinary version guard.
-- Durable account progress; explicit completion; required versus optional steps; undo/bulk/reset; stale rendered-version rejection; valid POST and invalid CSRF; GET without writes; warmed anonymous/Alice/Bob separation; final-step redirects and private chapter resume.
-- Private draft saves preserving an existing published revision, reviewed publication, authorized latest-draft reopening and preview, revision-specific access denial, stale/forged save snapshots and compatibility with an existing core Content Moderation workflow.
-- One accessible progress summary and native meter, accurate optional-only counts, one guided primary action, explicit Read-all step selection and safe previous-lesson navigation from continuous reading.
-- Optional theme-adapter assets gated to `actools_bs5` and its subthemes, excluded from unrelated active themes including Claro, with theme cache variation and existing cache metadata preserved.
+The final browser-only common-runner stage passed the retained suite. It uses actual Drupal `drupal.js`/`once`, module assets and local MathJax. It covers root/late attachment, private progress replacement, six print palettes, successful and failed/missing/blocked typesetting with raw TeX retained, individual figure links and theme header handoff.
 
-- Whole-form input/upload capacity, native 120-component first/middle/last saves, real PHP input-parser truncation, discarded oversized POST, omitted scalar controls, stale AJAX inventories, managed-file removal, stored-file upload counting and direct numeric step/component ordering.
-- Empty unmanaged Notes/Assignment saves, preservation of existing saved steps, removed/reintroduced step-version high-water marks, shared publication/readiness completeness, callback/group-aware path preflight, absolute generated URLs and individual figure-link names.
+The initial local browser launches failed on missing execute permission. After that was corrected, the ordinary headless-shell 151 runtime crashed with SIGTRAP on a later isolated context; a module-free multi-context smoke reproduced that runtime failure. Serverless Chromium 153 passed the same context smoke. Its first suite run exposed stale 1073 × 623 dimensions in the Layout Builder stress fixture, while the rebuilt demo PNG is 1800 × 960. The fixture was corrected to assert the actual decoded dimensions, preserve its original ratio tolerance against intrinsic proportions and retain `object-fit: contain`; no cropping assertion was removed. The final frozen browser suite then passed. Captured native HTML remains unchanged; provenance is recorded in the fixtures README.
 
-- Optional Layout Builder installation without display/override rewrites; exact contextual reader rendering, stored shared-default reloads and full-to-default display fallback; preservation of ordinary unmanaged fields and overrides.
-- Native Manage layout editing and display opt-in/opt-out; recoverable invalid-save/core-disable errors; missing, duplicate, wrong-context and malformed imported layouts falling back to the complete original reader.
-- Managed per-content override denial, including an older published unmanaged node with a newer managed draft; shared public versus private draft/historical revision separation; warm field access, query and account progress cache boundaries.
+Shared Layout Builder fixtures cover captured native output plus explicit 1/2/3/4-column variants, narrow-region stacking, 320-pixel reading, 200% text, no JavaScript and linear print. Figure fixtures cover closed solution images, once-only captions, anchor reveal, uncropped narrow rendering, browser-print restoration and no-JavaScript dedicated Print. The button fixture verifies secondary Unpublish and primary Publish styling.
 
-- Published-default ownership continuity on chapter reference removal, flag-off and single/bulk deletion; stale validated objects rechecked at actual save; transactional mixed-delete rejection; native friendly errors and no restricted child-title disclosure.
-- Authorized explicit Unpublish of incomplete latest content as a new unpublished default; historical revisions retained; forged nonpublisher action rejected; unpublish/move/review/publish and warm navigation.
-- Pending managed adoption behind ordinary defaults: authorized latest editing and private preview, unauthorized GET/POST denial, stale ordinary-form recovery, defensive API save rejection and an unchanged ordinary-pending control.
-- Flat figure associations in all four regions, strict same-step/type validation, corrupt legacy fallback, one rendering per figure, figure-only disclosures, field/file access/cache metadata, history/file usage, native upload/reopen/AJAX and independent parent/step cloning with capacity limits.
+These retained captures originate in earlier releases. New 1.3.0 derivative URLs and equation labels are verified through native Kernel/Functional tests, not newly captured full-theme Chromium authoring. This suite does not claim an installed production theme, real Layout Builder drag interface, BigPipe runtime, complete source corpus or full manuscript import.
 
-See [tests/README.md](tests/README.md) for the shared entry point, disposable bootstrap and exact test source.
+## Historical installed-UI evidence
 
-## Retained browser regressions — 1.0.3, rerun for 1.2.0
-
-The shipped common entry point also ran the retained Playwright suite with actual Drupal `drupal.js`/`once`, module assets and the bundled local MathJax renderer. It passed with zero browser page errors:
-
-- Matching root reader/progress/mathematics contexts, late insertion, replacement progress forms and exactly-once initialization/print handling.
-- All six OS/explicit appearance combinations in print, with complete light ink/background palettes and retained screen appearance.
-- Actual local mathematics success, rejected typesetting/startup, missing or blocked entry scripts before window load, and late attachment after load. One fallback notice appears and raw TeX remains available.
-- Distinct figure-link names and the theme adapter's handoff to native header signals.
-
-These are retained focused fixtures. The complete installed-Drupal UI journey below remains explicitly the earlier 1.0.1 baseline. The full production theme, real BigPipe runtime, CSP and BOA stack require staging acceptance.
-
-## Layout Builder browser regressions — 1.1.0, rerun for 1.2.0
-
-The retained browser suite uses an anonymous canonical shared-layout root captured from the real Drupal Functional fixture. Native Functional tests exercise Layout Builder form actions; these focused Chromium fixtures exercise the captured reader presentation with actual module/core assets and explicit layout/content stress variants.
-
-- Actual composed markup and one-, two-, three- and four-column core region variants; one protected document H1 and an owned wrapper independent of theme classes.
-- Full-width sticky navigation clearing a simulated 112-pixel header; narrow regions stacking the internal reader sidebar and making it static; 320-pixel viewport, 200% text and JavaScript-disabled reading.
-- A wide scientific table scrolling locally and a scientific figure retaining its native proportions.
-- Linear print output: captured native output and the explicit stress fixture each produced 3 pages, with zero browser page errors. The native print pages were also rendered and visually inspected during focused development.
-
-The variants deliberately rearrange captured markup and add stress content; they do not certify all third-party layouts/blocks, the JavaScript Layout Builder drag interface or the installed production theme. See [the shared-layout guide](docs/LAYOUT_BUILDER.md) for supported composition and staging checks.
-
-## Figure placement browser regressions — 1.2.0
-
-The browser suite loads actual anonymous reader and dedicated-Print fragments captured from the native upload/save/reopen/reviewed-publication test. The only file-link normalization points image/original URLs at the identical uploaded 1200 × 600 PNG retained with the fixture. No private forms, settings or tokens are retained.
-
-- The solution image and caption occur once, remain hidden inside the closed native disclosure and become visible on opening it.
-- The component anchor reveals its enclosing disclosure; its individual image alternative text names the original-image link.
-- The wide diagram remains uncropped at 320 pixels and works with JavaScript disabled.
-- Browser print expands the solution and restores its prior screen state afterwards; dedicated Print contains the expanded figure without JavaScript.
-- The scoped `actools_bs5` adapter keeps Unpublish secondary while Publish remains primary.
-
-These are focused presentation fixtures, not a full installed-theme editor performance test or a complete Surface Tension import. See [CONTENT_MAPPING.md](docs/CONTENT_MAPPING.md) for that acceptance boundary.
+The following remains the earlier installed-Drupal browser baseline and pinned theme fixture, not a new 1.3.0 live-site journey.
 
 ## Installed-Drupal browser baseline — 1.0.1
 
@@ -125,6 +75,6 @@ The Chromium/Playwright fixture used `actools_bs5` main pinned at `1f711daa630a2
 
 ## Deployment limits
 
-PHP 8.4 for this new release, Percona and its concurrent transaction/deadlock behaviour, the production BOA/Nginx deployment, the full installed `actools_bs5` theme runtime and production content-security policy were not tested here. The pinned-contract fixture is not certification of that deployment. Run the module on a staging copy of that stack before deploying. Check toolbar/header offsets, theme overrides, locally served fonts/scripts/styles and the MathJax worker policy there.
+The actual BOA/Nginx/Percona deployment, concurrent Percona transactions/deadlocks, production access modules, installed `actools_bs5`, toolbar/header offsets, private-file extension and CSP require staging acceptance. Verify local fonts/scripts/styles and MathJax's accessibility worker policy there. No production deployment was performed.
 
-The module declares Drupal 11.3+ / PHP 8.3+ compatibility; the exact exercised versions are the table above. This is not a formal screen-reader, WCAG, performance/load, multilingual or penetration-test certification. Private-file authoring, assessment delivery and DOCX round trips are outside this release's implemented scope.
+Drupal 11.3+ / PHP 8.3+ is declared compatibility; this local run exercises the exact versions above. It is not exhaustive screen-reader/WCAG, performance/load, multilingual, penetration-test or full-corpus scientific certification. Import approval, licensing/provenance, manuscript corrections, question-bank execution and Word/OMML round trips remain outside this module release. No Paragraphs work was included.

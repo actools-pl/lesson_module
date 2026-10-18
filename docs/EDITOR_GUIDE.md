@@ -1,4 +1,4 @@
-# Editor guide — Actools Lessons 1.2.0
+# Editor guide — Actools Lessons 1.3.0
 
 Open **Content → Actools Lessons** (`/admin/content/actools-lessons`). The workbench shows chapter assignment, step review readiness and whether a lesson is **Draft**, **Published** or **Published with draft**. Available actions depend on your native Drupal content, revision and text-format permissions. The workbench permission alone does not grant editing or publishing.
 
@@ -14,12 +14,24 @@ This guide describes the module's default lesson workflow. If Resource uses core
 | Component | Authoring guidance |
 | --- | --- |
 | Explanation / Table | Use the rich-text editor's headings, lists and table tools. Your role must be allowed to use the selected text format. |
-| Display equation | Enter editable TeX without dollar delimiters; inspect the typeset saved preview. Retain definitions and assumptions in nearby prose. |
+| Display equation | Enter editable TeX without delimiters. Optionally enter an explicit reference label such as (4.1); it stays the same after reordering. Inspect the typeset saved preview and retain definitions/assumptions nearby. |
 | Scientific figure | Upload a PNG, JPEG, GIF or WebP, up to 20 MB. Supply meaningful alternative text; add a caption and longer diagram description where needed. |
 | Key result / Common error | Keep the statement concise and explain its conditions or correction. |
 | Worked example / Selected practice | Enter the question or given information, with optional hint, answer and worked solution. Reveals support study; they do not create a scored attempt. |
 
+## Mathematics and reference labels
+
+In rich text, inline mathematics uses `\(S = F/L\)` and display mathematics uses `\[h = 2S\cos\theta/(\rho g r)\]`. Type the backslashes and delimiters as ordinary text. Dollar delimiters (`$...$` and `$$...$$`) are not enabled. In a **Display equation** component enter only the TeX source, for example `h = \frac{2S\cos\theta}{\rho g r}`. The saved preview is the typesetting check; CKEditor does not supply a live mathematics preview.
+
+An optional equation reference label is plain text, including any parentheses you want displayed. It is identical in Guided, Read all and Print. Labels are authored, not automatic counters: keep them unique by editorial review and use the saved component UUID link for a stable cross-reference. The reader does not interpret manuscript reference tokens. Without JavaScript, editable TeX source and the label remain readable.
+
+Selected practice has optional **Question variant reference** and **Reviewed variant version** controls. Fill both or leave both empty. They store an exact external reference within the lesson revision; there is no bank lookup, scoring or automatic refresh. These identifiers are not printed in the reader. Keep learner-facing citations in **Source**. Copying practice preserves its external reference while creating a new component UUID; change that reference deliberately when the copied task becomes a different variant.
+
+## Scientific figures
+
 To place a diagram inside an example or practice question, add a normal **Scientific figure** in the same step, select its target example/practice and choose its placement. Choose **Solution** for a solution-only diagram: it stays inside the closed solution reveal on screen and opens in Print. Leave the target empty for a standalone figure. A parent can have several figures; their order follows the figure components' order in the step.
+
+New installations and update 11001 provide a bounded diagram derivative without cropping or enlarging small images. The original link retains the uploaded master. A site operator may configure a same-name style; inspect its actual effects on staging.
 
 Duplicating an example/practice also duplicates its attached figures with independent identities when the step and lesson have room. Duplicating a step preserves associations within the duplicate. Removing a parent keeps its figures as standalone components. Every attached figure still counts as one component and uses the same public managed-file controls.
 

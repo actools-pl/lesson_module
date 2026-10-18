@@ -6,6 +6,7 @@ namespace Drupal\actools_lesson\Plugin\Field\FieldWidget;
 
 use Drupal\actools_lesson\Service\AuthoringInputGuard;
 use Drupal\actools_lesson\Service\LessonAccess;
+use Drupal\actools_lesson\Service\TeachingContentComparison;
 use Drupal\Component\Utility\Html;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Utility\Crypt;
@@ -176,6 +177,7 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
     ];
     if ($type === 'equation') {
       $element['tex'] = ['#type' => 'textarea', '#title' => $this->t('Editable TeX equation'), '#default_value' => $component['tex'] ?? '', '#rows' => 3, '#required' => TRUE, '#description' => $this->t('Enter TeX without dollar delimiters. Use the saved lesson preview to inspect the actual typeset equation.')];
+      $element['equation_number'] = ['#type' => 'textfield', '#title' => $this->t('Equation reference label (optional)'), '#default_value' => $component['equation_number'] ?? '', '#maxlength' => 64, '#description' => $this->t('For example, (4.1). This exact label appears beside the equation in every reading and Print view. Reordering does not renumber it; use the stable component link for cross-references.')];
     }
     elseif ($type === 'figure') {
       $targets = ['' => $this->t('Standalone figure')];
@@ -208,6 +210,10 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
           $element[$property] = $this->textElement($label, $component[$property] ?? [], 3);
         }
       }
+    }
+    if ($type === 'practice') {
+      $element['variant_ref'] = ['#type' => 'textfield', '#title' => $this->t('Question variant reference (optional)'), '#default_value' => $component['variant_ref'] ?? '', '#maxlength' => 255, '#description' => $this->t('An editorial identifier for an exact question variant. If used, also enter its reviewed version. This stores a reference only; it does not fetch or synchronise question-bank content.')];
+      $element['variant_version'] = ['#type' => 'textfield', '#title' => $this->t('Reviewed variant version (optional)'), '#default_value' => $component['variant_version'] ?? '', '#maxlength' => 64, '#description' => $this->t('Enter the version paired with the question variant reference, or leave both empty. These identifiers are retained in lesson revisions; use Source below for a citation shown to learners.')];
     }
     $element['source'] = ['#type' => 'textfield', '#title' => $this->t('Source / reviewed variant reference (shown to learners)'), '#default_value' => $component['source'] ?? '', '#maxlength' => 4000, '#description' => $this->t('This reference is displayed publicly with the component. Identify the source and exact reviewed variant/version; do not enter confidential editorial notes.')];
     $element['actions'] = ['#type' => 'container', '#attributes' => ['class' => ['actools-author__actions']]];
@@ -475,10 +481,9 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
       ];
       if (isset($baseline[$row['step_id']])) {
         $old = $baseline[$row['step_id']];
-        $old_components = json_decode((string) $old['components'], TRUE) ?? [];
         // A heading rename or route position must not erase study completion.
         // Changes to the actual teaching components require a new version.
-        $changed = $components != $old_components;
+        $changed = !TeachingContentComparison::same((string) $old['components'], $row['components']);
         $row['content_version'] = max(1, (int) $old['content_version']) + (int) $changed;
         if ($changed && !empty($old['reviewed'])) {
           $row['reviewed'] = 0;
@@ -514,6 +519,21 @@ final class LessonStepBuilderWidget extends WidgetBase implements TrustedCallbac
         foreach (['heading', 'tex', 'alt', 'caption', 'description', 'source'] as $key) {
           if (isset($raw[$key]) && is_string($raw[$key]) && ($raw[$key] !== '' || array_key_exists($key, $component))) {
             $component[$key] = $raw[$key];
+          }
+        }
+        $references = match ($component['type']) {
+          'equation' => ['equation_number'],
+          'practice' => ['variant_ref', 'variant_version'],
+          default => [],
+        };
+        foreach ($references as $key) {
+          if (isset($raw[$key]) && is_string($raw[$key])) {
+            if (trim($raw[$key]) === '') {
+              unset($component[$key]);
+            }
+            else {
+              $component[$key] = trim($raw[$key]);
+            }
           }
         }
         foreach (['body', 'hint', 'answer', 'solution'] as $key) {

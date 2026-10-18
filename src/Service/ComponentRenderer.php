@@ -97,7 +97,9 @@ final class ComponentRenderer {
       '#caption' => [],
       '#description' => [],
       '#source' => $this->plain($component['source'] ?? ''),
-      '#equation_number' => [],
+      // This is an explicit editorial label, not a positional counter or TeX.
+      // Keep it tied to the component so reordering never changes references.
+      '#equation_number' => $type === 'equation' ? $this->plain($component['equation_number'] ?? '') : [],
       '#expanded' => $print,
       '#prompt_figures' => $attached_figures['prompt'] ?? [],
       '#hint_figures' => $attached_figures['hint'] ?? [],
@@ -148,6 +150,7 @@ final class ComponentRenderer {
       ];
       // Keep the native image render pipeline and optionally use the module's
       // non-cropping derivative, when a compatible style has been installed.
+      $metadata->addCacheTags($this->entityTypeManager->getDefinition('image_style')->getListCacheTags());
       $style = $this->entityTypeManager->getStorage('image_style')->load('actools_lesson_diagram');
       if ($style && $image) {
         $metadata->addCacheableDependency($style);

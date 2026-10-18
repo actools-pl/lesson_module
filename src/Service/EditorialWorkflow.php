@@ -298,7 +298,7 @@ final class EditorialWorkflow {
       'digest' => $node->id() ? $this->digest($latest) : '',
     ];
     $payload = rtrim(strtr(base64_encode(json_encode($snapshot, JSON_THROW_ON_ERROR)), '+/', '-_'), '=');
-    return $payload . '.' . Crypt::hmacBase64($payload, Settings::getHashSalt());
+    return $payload . '.' . Crypt::hmacBase64($payload, $this->snapshotKey($node));
   }
 
   public function decodeToken(string $token, NodeInterface $node): ?array {
@@ -306,7 +306,7 @@ final class EditorialWorkflow {
       return NULL;
     }
     [$payload, $signature] = explode('.', $token, 2);
-    if (!hash_equals(Crypt::hmacBase64($payload, Settings::getHashSalt()), $signature)) {
+    if (!hash_equals(Crypt::hmacBase64($payload, $this->snapshotKey($node)), $signature)) {
       return NULL;
     }
     $snapshot = json_decode(base64_decode(strtr($payload, '-_', '+/'), TRUE) ?: '', TRUE);
@@ -329,6 +329,13 @@ final class EditorialWorkflow {
 
   private function digest(NodeInterface $node): string {
     return hash('sha256', serialize($node->toArray()));
+  }
+
+  /** Separates revision snapshots from other site- and account-bound tokens. */
+  private function snapshotKey(NodeInterface $node): string {
+    return \Drupal::service('private_key')->get() . Settings::getHashSalt()
+      . ':actools_lesson:editorial_snapshot:v2:' . $this->currentUser->id()
+      . ':' . $node->getEntityTypeId() . ':' . $node->bundle() . ':' . ($node->id() ?: 'new');
   }
 
 }

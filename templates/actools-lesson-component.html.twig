@@ -16,9 +16,9 @@
 <section class="actools-component actools-component--{{ component_type|clean_class }}"{% if id %} id="component-{{ id }}"{% endif %}{% if rendered_heading|trim and id %} aria-labelledby="component-heading-{{ id }}"{% endif %}>
   {% if rendered_heading|trim %}<h3{% if id %} id="component-heading-{{ id }}"{% endif %}>{{ rendered_heading }}</h3>{% endif %}
   {% if component_type == 'equation' %}
-    <div class="actools-equation" tabindex="0" role="region" aria-label="{{ 'Equation; scroll horizontally if needed'|t }}">
+    <div class="actools-equation" tabindex="0" role="region" aria-label="{{ 'Equation; scroll horizontally if needed'|t }}"{% if rendered_equation_number|trim and id %} aria-describedby="equation-number-{{ id }}"{% endif %}>
       <span class="actools-equation__math">\[{{ tex }}\]</span>
-      {% if rendered_equation_number|trim %}<span class="actools-equation__number">{{ rendered_equation_number }}</span>{% endif %}
+      {% if rendered_equation_number|trim %}<span class="actools-equation__number"{% if id %} id="equation-number-{{ id }}"{% endif %}>{{ rendered_equation_number }}</span>{% endif %}
     </div>
     {% if rendered_body|trim %}<div class="actools-component__body">{{ rendered_body }}</div>{% endif %}
   {% elseif component_type == 'figure' %}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\actools_lesson\Plugin\Validation\Constraint;
 
+use Drupal\actools_lesson\Service\TeachingContentComparison;
 use Drupal\Component\Uuid\Uuid;
 use Drupal\file\Entity\File;
 use Drupal\filter\Entity\FilterFormat;
@@ -52,8 +53,8 @@ final class ActoolsLessonStepConstraintValidator extends ConstraintValidator {
       return;
     }
     if ($old = $original['steps'][$row['step_id'] ?? ''] ?? NULL) {
-      $old_components = json_decode((string) $old['components'], TRUE) ?? [];
-      $minimum = (int) $old['content_version'] + (int) ($old_components != $components);
+      $changed = !TeachingContentComparison::same((string) $old['components'], $json);
+      $minimum = (int) $old['content_version'] + (int) $changed;
       if ((int) $row['content_version'] < $minimum) {
         $error('Changed teaching content requires a newer content version; an existing version may not decrease.', 'content_version');
       }
@@ -71,12 +72,27 @@ final class ActoolsLessonStepConstraintValidator extends ConstraintValidator {
         continue;
       }
       $ids[$component['id']] = TRUE;
-      if (array_diff(array_keys($component), ['id', 'type', 'heading', 'body', 'hint', 'answer', 'solution', 'tex', 'fid', 'alt', 'caption', 'description', 'source', 'parent_id', 'placement'])) {
+      if (array_diff(array_keys($component), ['id', 'type', 'heading', 'body', 'hint', 'answer', 'solution', 'tex', 'fid', 'alt', 'caption', 'description', 'source', 'parent_id', 'placement', 'equation_number', 'variant_ref', 'variant_version'])) {
         $error('A component contains unsupported properties.');
       }
       $type = $component['type'] ?? '';
       if (!in_array($type, ['text', 'equation', 'figure', 'result', 'error', 'example', 'practice', 'table'], TRUE)) {
         $error('A component has an unsupported type.');
+      }
+      if ($type !== 'figure' && array_key_exists('fid', $component)) {
+        $error('Only figure components may contain an uploaded file identity.');
+      }
+      if (array_key_exists('equation_number', $component)
+        && ($type !== 'equation' || !is_string($component['equation_number']) || mb_strlen($component['equation_number']) > 64)) {
+        $error('An equation number must be text of at most 64 characters on an equation component.');
+      }
+      if (array_key_exists('variant_ref', $component) || array_key_exists('variant_version', $component)) {
+        if ($type !== 'practice' || !is_string($component['variant_ref'] ?? NULL)
+          || trim($component['variant_ref']) === '' || mb_strlen($component['variant_ref']) > 255
+          || !is_string($component['variant_version'] ?? NULL)
+          || trim($component['variant_version']) === '' || mb_strlen($component['variant_version']) > 64) {
+          $error('A practice bank reference requires both a reference of at most 255 characters and a reviewed version of at most 64 characters.');
+        }
       }
       $parent = array_key_exists('parent_id', $component) ? $component['parent_id'] : '';
       $placement = array_key_exists('placement', $component) ? $component['placement'] : '';

@@ -1,4 +1,4 @@
-# Installation — Actools Lessons 1.2.0
+# Installation — Actools Lessons 1.3.0
 
 This repository contains the Drupal module at its root. The GitHub repository name is **not** its Drupal machine name.
 
@@ -16,7 +16,7 @@ Clone or extract the repository into a directory named `actools_lesson`. The res
 
 The release declares Drupal **11.3+ within Drupal 11** and PHP **8.3+**. Its declared core dependencies include Node, Field, Text, Filter, CKEditor 5, Options, File, Image, User and Taxonomy. Drupal enables required dependencies when enabling the module. Teaching figures require writable public file storage. MathJax and fonts are bundled locally; no frontend package build or remote CDN is required.
 
-Final **1.2.0** native validation passed **132 tests / 2107 assertions** on **Drupal 11.4.10, PHP 8.3.6 and SQLite**, followed by retained browser checks. Unit 8/53, Kernel 73/1136 and Functional 51/918 ran through the unchanged disposable entry point. New cases exercise published ownership, pending adoption, authorized Unpublish, native deletion and associated solution figures. The full installed-Drupal browser-authoring baseline remains 1.0.1; focused newer fixtures have their own scope. PHP 8.4 for this new release, Percona concurrency, BOA/Nginx, the installed theme and CSP require their corresponding hosted/staging acceptance. See [VALIDATION.md](../VALIDATION.md) for evidence and dependency-provisioning limits.
+Final **1.3.0** local validation passed **168 tests / 2741 assertions**, plus nine browser regression groups, on **Drupal 11.4.10, PHP 8.3.6 and SQLite**. Unit 21/82, Kernel 89/1494 and Functional 58/1165 ran together through the shipped disposable entry point without retries. The complete browser stage passed separately after correcting the local browser runtime and stale demo-image fixture dimensions; production/native source stayed unchanged. New native cases exercise conditional inputs, empty upload slots, strict teaching identities/history, paired references, labels and real diagram derivatives. Check Actions for the exact published commit's complete PHP 8.3/8.4 results; BOA/Percona, the full installed theme and production CSP need staging acceptance. See [VALIDATION.md](../VALIDATION.md).
 
 ## Choose the correct codebase and site
 
@@ -40,7 +40,7 @@ cd /absolute/path/to/drupal-project
 git clone https://github.com/actools-pl/lesson_module.git web/modules/custom/actools_lesson
 ```
 
-This release has no release tag. Select the reviewed 1.2.0 source commit through your normal release process and record its commit ID. Do not assume that an arbitrary future repository HEAD is this release. For an existing checkout, inspect local changes before updating it; do not clone over it.
+This release has no release tag. Select the reviewed 1.3.0 source commit through your normal release process and record its commit ID. Do not assume that an arbitrary future repository HEAD is this release. For an existing checkout, inspect local changes before updating it; do not clone over it.
 
 A non-Composer or managed platform may use a different document root. Place `actools_lesson` under that actual root's `modules/custom/`, using the platform's staging/build process.
 
@@ -61,6 +61,12 @@ Open **Content → Actools Lessons**, `/admin/content/actools-lessons`. The modu
 
 For optional shared chapter/lesson layouts, follow [LAYOUT_BUILDER.md](LAYOUT_BUILDER.md). The base module remains independent of Layout Builder; enabling the add-on does not configure displays automatically.
 
+## Configuration import order
+
+The module creates missing compatible content configuration imperatively. On a new destination, enable `actools_lesson` and its required dependencies **before the first import** of this site's exported lesson fields/displays/text format. Then import the reviewed matching configuration and rebuild caches. Existing enabled sites need their normal update/configuration deployment sequence, including update 11001; they must not be reinstalled.
+
+In development, enable or update the module, review the resulting configuration, and export it with the site's normal `drush cex` process. The new diagram style is configuration and belongs in that export. Rehearse the destination sequence on a clone. The module does not take ownership of or reapply the theme recipe, and configuration import is not a content backup or manuscript importer.
+
 ## Permissions and existing workflows
 
 The module grants no role permissions. Configure roles at `/admin/people/permissions`, then verify with actual non-administrator accounts.
@@ -77,7 +83,7 @@ Where core Content Moderation governs Resource, its configured transitions remai
 
 ## Optional example and taxonomy
 
-Enable `actools_lesson_demo` only when you intend to create its editable, published Surface Tension chapter, three Core lessons, one Extension lesson and original diagrams. It is a small original example, not an import of `ST.zip`. It creates no assessment attempts and changes no role grants or default theme. Uninstalling the optional example submodule leaves its content in place; do not re-enable it as an update strategy.
+Enable `actools_lesson_demo` only when you intend to create its editable, published Surface Tension chapter, three Core lessons, one Extension lesson and original diagrams. It is a small original example, not an import of `ST.zip`. New imports use S for surface tension in text, TeX and diagrams. Updating the code does not rewrite already imported demo nodes or files. It creates no assessment attempts and changes no role grants or default theme. Uninstalling the optional example submodule leaves its content in place; do not re-enable it as an update strategy.
 
 If `edu_topics` exists when the main module is enabled, optional chapter/concept term-reference fields are added. Choose existing terms explicitly. The installer does not create the vocabulary, import the external taxonomy seed, guess a code field or remap legacy resources. For the compatibility contract, see [ARCHITECTURE.md](ARCHITECTURE.md) and [CONTENT_AND_EXTENSION.md](CONTENT_AND_EXTENSION.md).
 

@@ -55,15 +55,18 @@ final class AuthoringInputGuard {
     $form[self::SENTINEL]['#value'] = $payload . '.' . Crypt::hmacBase64($payload, self::key($form_state));
     $maximum = (int) ini_get('max_input_vars');
     $upload_maximum = (int) ini_get('max_file_uploads');
-    $blocked = ($maximum >= 0 && $budget > $maximum) || $uploads > $upload_maximum || ($uploads > 0 && !ini_get('file_uploads'));
+    // Empty file controls are not uploads: PHP applies max_file_uploads only
+    // to files actually selected in this request, not to rendered slots. Core
+    // managed_file processing remains responsible for those actual uploads.
+    $blocked = ($maximum >= 0 && $budget > $maximum) || ($uploads > 0 && !ini_get('file_uploads'));
     $message = 'Lesson editor input budget: ' . $budget . ' including 128 reserved inputs for native/AJAX request metadata; server max_input_vars=' . $maximum . '.';
     if ($blocked) {
-      $message .= ' Saving, preview and builder actions are disabled because this complete form exceeds a server input/upload-count limit. Ask the site operator to raise max_input_vars (4096 supports the documented native-editor capacity) and max_file_uploads to cover the displayed upload controls, then reload this editor. Saved content has not changed.';
+      $message .= ' Saving, preview and builder actions are disabled because this complete form exceeds max_input_vars or file uploads are disabled. Ask the site operator to raise max_input_vars (4096 supports the documented native-editor capacity) or enable file_uploads, then reload this editor. Saved content has not changed.';
       self::disableSubmit($form);
     }
     $post = self::bytes((string) ini_get('post_max_size'));
     $upload = self::bytes((string) ini_get('upload_max_filesize'));
-    $message .= ' Potential single-file upload controls: ' . $uploads . '; server max_file_uploads=' . $upload_maximum . '. Full-capacity server settings: post_max_size at least 128M for the combined request and upload_max_filesize at least 20M per figure. Supporting 120 simultaneous figure uploads also requires max_file_uploads at least 120 and sufficient combined body capacity; 128M does not fit 120 new 20M files. Actual server values: post_max_size=' . ini_get('post_max_size') . ', upload_max_filesize=' . ini_get('upload_max_filesize') . '.';
+    $message .= ' Available single-file upload controls (empty controls do not count as uploads): ' . $uploads . '; server max_file_uploads=' . $upload_maximum . ' applies to files selected in one request. Upload fewer files at once when this limit is lower than the number of controls. Full-capacity server settings: post_max_size at least 128M for the combined request and upload_max_filesize at least 20M per figure. Supporting 120 simultaneous figure uploads also requires max_file_uploads at least 120 and sufficient combined body capacity; 128M does not fit 120 new 20M files. Actual server values: post_max_size=' . ini_get('post_max_size') . ', upload_max_filesize=' . ini_get('upload_max_filesize') . '.';
     if (($post > 0 && $post < 128 * 1024 * 1024) || $upload < 20 * 1024 * 1024) {
       $message .= ' Smaller server body/upload limits restrict what this form can submit; use smaller requests or have the operator raise the limits before uploading large figures.';
     }
@@ -81,7 +84,7 @@ final class AuthoringInputGuard {
         '#array_parents' => ['actools_lesson_input_capacity', 'status'],
         '#value' => $blocked
           ? 'This complete lesson form exceeds a server limit. Saving and builder actions are blocked. Ask the site administrator to increase the limits, then reload the editor. Saved content is unchanged.'
-          : 'The complete lesson form fits this server’s input and upload-count limits.',
+          : 'The complete lesson form fits this server’s input limit and upload availability settings.',
         '#attributes' => ['role' => $blocked ? 'alert' : 'note'],
       ],
       'limits' => [
@@ -152,14 +155,20 @@ final class AuthoringInputGuard {
     if (!\Drupal::request()->isMethod('POST')) {
       return;
     }
-    if ($schema = $form_state->getTemporaryValue(self::CHECKED)) {
-      self::assertCurrentPhase($form_state, $schema);
-      return;
-    }
     $limit = self::bytes((string) ini_get('post_max_size'));
     $length = (int) \Drupal::request()->server->get('CONTENT_LENGTH', 0);
     if ($limit > 0 && $length > $limit) {
       throw new HttpException(413, 'The lesson form exceeds the server post_max_size limit. Nothing was saved. Keep the editor tab, copy unsaved text before reloading, and ask the site operator to raise the request limit or submit fewer/smaller uploads.');
+    }
+    // A POST can build this form without submitting it (for example a
+    // different form_id). Keep the body-size check above: PHP may discard an
+    // oversized POST entirely, which also makes isProcessingInput() FALSE.
+    if (!$form_state->isProcessingInput()) {
+      return;
+    }
+    if ($schema = $form_state->getTemporaryValue(self::CHECKED)) {
+      self::assertCurrentPhase($form_state, $schema);
+      return;
     }
     $input = $form_state->getUserInput();
     $token = $input[self::SENTINEL] ?? '';
@@ -178,7 +187,7 @@ final class AuthoringInputGuard {
     if ($maximum >= 0 && $schema['budget'] > $maximum) {
       self::incomplete();
     }
-    if ($schema['uploads'] > (int) ini_get('max_file_uploads') || ($schema['uploads'] > 0 && !ini_get('file_uploads'))) {
+    if ($schema['uploads'] > 0 && !ini_get('file_uploads')) {
       self::incomplete();
     }
     foreach ($schema['required'] as $path) {
@@ -240,8 +249,8 @@ final class AuthoringInputGuard {
     return \Drupal::service('private_key')->get() . Settings::getHashSalt() . ':' . \Drupal::currentUser()->id() . ':' . $object->getFormId() . ':' . ($entity ? $entity->getEntityTypeId() . ':' . $entity->bundle() . ':' . ($entity->id() ?: 'new') : 'form');
   }
 
-  /** Collect actual input elements, excluding unchecked/disabled-only controls. */
-  private static function collect(array $element, array &$required, array &$controls, int &$uploads, array &$bindings, bool $disabled = FALSE): void {
+  /** Collect inputs while preserving the complete owned lesson schema. */
+  private static function collect(array $element, array &$required, array &$controls, int &$uploads, array &$bindings, bool $disabled = FALSE, bool $conditional = FALSE, bool $owned = FALSE): void {
     // Core decides upload/remove visibility at pre-render, after Form API's
     // after_build. Count the controls that will actually be sent by the browser.
     if (($element['#type'] ?? '') === 'managed_file') {
@@ -255,6 +264,13 @@ final class AuthoringInputGuard {
     if ($disabled) {
       return;
     }
+    // Client-side states can disable external controls after this server
+    // schema is signed. Browsers legitimately omit those controls, including
+    // descendants of a conditionally disabled fieldset/container. Still count
+    // their worst-case input budget. Lesson controls and signed inventories
+    // stay mandatory even if a form alter adds states to the editor.
+    $conditional = $conditional || (bool) array_intersect(['disabled', 'enabled', '!enabled', '!disabled'], array_keys($element['#states'] ?? []));
+    $owned = $owned || !empty($element['#actools_editor']) || isset($element['#actools_path']) || array_key_exists('data-actools-identity-inventory', $element['#attributes'] ?? []);
     $type = $element['#type'] ?? '';
     if ($type === 'file') {
       $uploads++;
@@ -265,7 +281,7 @@ final class AuthoringInputGuard {
       $name = $element['#name'];
       $multiple = !empty($element['#multiple']);
       $controls[$name] = $multiple ? max(1, self::optionCount($element['#options'] ?? [])) : 1;
-      if (!$multiple && !in_array($type, ['checkbox', 'radio'], TRUE)) {
+      if (!$multiple && !in_array($type, ['checkbox', 'radio'], TRUE) && (!$conditional || $owned)) {
         $required[$name] = $element['#parents'];
       }
       if (array_key_exists('data-actools-identity-inventory', $element['#attributes'] ?? [])) {
@@ -273,7 +289,7 @@ final class AuthoringInputGuard {
       }
     }
     foreach (Element::children($element) as $key) {
-      self::collect($element[$key], $required, $controls, $uploads, $bindings, $disabled);
+      self::collect($element[$key], $required, $controls, $uploads, $bindings, $disabled, $conditional, $owned);
     }
   }
 

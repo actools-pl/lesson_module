@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0 — 2026-10-18
+
+- Accept legitimately disabled external form controls without weakening owned lesson-input checks; stop counting empty file inputs against the actual-upload limit; ignore unrelated form POSTs while retaining oversized-body protection.
+- Compare teaching JSON with strict scalar types and canonical object keys across editor, validation and restoration. Batch retained-history preparation per field-list save, reject non-figure file IDs and bind revision signatures to private key, salt, account and node context.
+- Reject an obsolete reading identity when a modified older private revision replaces newer published teaching; preserve native immutable restores with fresh versions.
+- Complete optional explicit equation labels and install/update a noncropping, no-upscale diagram style while preserving operator configuration and original links.
+- Add optional paired practice variant identifiers to the existing component model; no question-bank lookup, entity or scoring.
+- Use S consistently in new demonstration text and original diagrams. Document inline TeX, configuration import order, pilot content boundaries and the required update 11001. Preserve existing content, revisions and UUIDs; no Paragraphs work.
+
 ## 1.2.0 — 2026-10-18
 
 - Guard published lessons against losing their chapter through outline removal, clearing the chapter role or chapter deletion; provide an explicit authorized unpublish action before moving lessons.
